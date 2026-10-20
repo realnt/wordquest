@@ -5,14 +5,14 @@ const path=require('node:path');
 const vm=require('node:vm');
 const script=fs.readFileSync(path.join(__dirname,'../speech.js'),'utf8');
 
-function harness(voices, saved='en-GB', savedSpeed=null, voicePreferences=null) {
+function harness(voices, saved='en-GB', savedSpeed=null, voicePreferences=null, userAgent='Windows') {
   const handlers={}, voiceHandlers={}, spoken=[], data=new Map([
     ['wordquest_speech_accent_v1',saved],
     ['wordquest_speech_speed_v1',savedSpeed],
     ['wordquest_speech_voice_v1',voicePreferences===null?null:JSON.stringify(voicePreferences)],
     ['wordquest_g7u1_v1','{"score":42}']
   ]);
-  let control=null, observe=null, statusEl=null, cancels=0;
+  let control=null, host=null, trigger=null, done=null, observe=null, statusEl=null, cancels=0;
   const select={value:'',matches:q=>q==='.speech-accent-select'};
   const voiceSelect={
     value:'',disabled:false,dataset:{},options:[],
@@ -23,21 +23,43 @@ function harness(voices, saved='en-GB', savedSpeed=null, voicePreferences=null) 
   const range={value:'1.0',matches:q=>q==='.speech-speed-range'};
   const output={textContent:''};
   const header={
-    querySelector:q=>q==='.speech-accent-control'?control:q==='.topnav, .tools'?nav:null,
-    appendChild:el=>{control=el;}
+    querySelector:q=>q==='.speech-settings-host'?host:q==='.topnav, .tools'?nav:null,
+    appendChild:el=>{host=el;control=el.querySelector('.speech-accent-control');trigger=el.querySelector('.speech-settings-trigger');done=control.querySelector('.speech-settings-confirm');}
   };
-  const nav={insertAdjacentElement:(_pos,el)=>{control=el;}};
+  const nav={insertAdjacentElement:(_pos,el)=>header.appendChild(el)};
   const root={};
   const body={appendChild:el=>{statusEl=el;}};
   class Node {
-    constructor(tag){this.tag=tag;this.attrs={};this.className='';this.textContent='';this.title='';this.classList={
+    constructor(tag){this.tag=tag;this.attrs={};this.className='';this.textContent='';this.title='';this.hidden=false;this.parent=null;this.children=[];this.classList={
       add:()=>{},remove:()=>{}
     };}
     setAttribute(k,v){this.attrs[k]=String(v);}
     hasAttribute(k){return Object.prototype.hasOwnProperty.call(this.attrs,k);}
     getAttribute(k){return this.attrs[k]||null;}
-    set innerHTML(html){this.html=html;}
-    querySelector(q){return q==='.speech-accent-select'?select:q==='.speech-voice-select'?voiceSelect:q==='.speech-accent-note'?note:q==='.speech-speed-range'?range:q==='.speech-speed-value'?output:null;}
+    appendChild(el){el.parent=this;this.children.push(el);return el;}
+    focus(){this.didFocus=true;}
+    matches(q){
+      return q.split(',').some(sel=>{
+        sel=sel.trim();
+        if(sel.startsWith('.'))return this.className.split(' ').includes(sel.slice(1));
+        if(sel.startsWith('[data-'))return this.hasAttribute(sel.slice(1,-1));
+        return false;
+      });
+    }
+    closest(q){let p=this;while(p){if(p.matches(q))return p;p=p.parent;}return null;}
+    set innerHTML(html){
+      this.html=html;
+      if(this.className==='speech-accent-control'){
+        done=new Node('button');done.className='speech-settings-confirm';this.appendChild(done);
+      }
+    }
+    querySelector(q){
+      if(this.className==='speech-settings-host'){
+        if(q==='.speech-accent-control')return this.children.find(el=>el.className==='speech-accent-control');
+        if(q==='.speech-settings-trigger')return this.children.find(el=>el.className==='speech-settings-trigger');
+      }
+      return q==='.speech-accent-select'?select:q==='.speech-voice-select'?voiceSelect:q==='.speech-accent-note'?note:q==='.speech-speed-range'?range:q==='.speech-speed-value'?output:q==='.speech-settings-confirm'?done:null;
+    }
   }
   const document={
     readyState:'complete',body,
@@ -64,10 +86,10 @@ function harness(voices, saved='en-GB', savedSpeed=null, voicePreferences=null) 
     setItem:(key,value)=>data.set(key,value)
   };
   vm.runInNewContext(script,{window,document,localStorage:store,
-    SpeechSynthesisUtterance:window.SpeechSynthesisUtterance,MutationObserver});
+    SpeechSynthesisUtterance:window.SpeechSynthesisUtterance,MutationObserver,
+    navigator:{userAgent}});
   const button=(attr,value)=>{
     const el=new Node('button');el.setAttribute(attr,value);
-    el.closest=q=>q.includes('[data-speak-word]')?el:null;
     return el;
   };
   const click=el=>handlers.click({target:el,preventDefault(){}});
@@ -76,8 +98,9 @@ function harness(voices, saved='en-GB', savedSpeed=null, voicePreferences=null) 
   const speedInput=value=>{range.value=value;handlers.input({target:range});};
   return {
     click,change,changeVoice,speedInput,button,spoken,data,select,voiceSelect,note,range,output,voiceHandlers,header,
-    redraw:()=>{control=null;observe();},
-    getControl:()=>control,getCancels:()=>cancels
+    redraw:()=>{control=null;host=null;trigger=null;done=null;observe();},
+    toggle:()=>click(trigger),confirm:()=>click(done),
+    getControl:()=>control,getTrigger:()=>trigger,getCancels:()=>cancels
   };
 }
 const voices=[
@@ -87,6 +110,14 @@ const voices=[
 {
  const h=harness(voices);
  assert.ok(h.getControl(),'Accent control inserted in header');
+ assert.equal(h.getControl().hidden,true,'Settings start collapsed');
+ assert.equal(h.getTrigger().attrs['aria-expanded'],'false');
+ h.toggle();
+ assert.equal(h.getControl().hidden,false,'Settings open when the button is tapped');
+ assert.equal(h.getTrigger().attrs['aria-expanded'],'true');
+ h.confirm();
+ assert.equal(h.getControl().hidden,true,'Done collapses the controls');
+ assert.equal(h.getTrigger().attrs['aria-expanded'],'false');
  assert.equal(h.select.value,'en-GB','Default remains UK');
  h.click(h.button('data-speak-word','schedule'));
  assert.equal(h.spoken.at(-1).lang,'en-GB');
@@ -107,6 +138,7 @@ const voices=[
  assert.ok(h.getCancels()>0,'Accent change cancels existing audio');
  h.redraw();
  assert.ok(h.getControl(),'Selector reappears after mission rerender');
+ assert.equal(h.getControl().hidden,true,'Settings remain collapsed after rerender');
  assert.equal(h.select.value,'en-US');
  assert.equal(h.range.value,'1.15');
  assert.equal(h.output.textContent,'1.15×');
@@ -229,4 +261,26 @@ const voices=[
    'Missing saved voice falls back to the first available voice');
  assert.equal(missing.note.hidden,false,'Explain missing preference');
 }
-console.log('Speech tests passed (UK/US, first default, distinct voice objects, preview, saved choices, mobile reload, speed).');
+
+{
+ const ios=[
+  {name:'Bad UK voice',lang:'en-GB',voiceURI:'badUK'},
+  {name:'Daniel',lang:'en-GB',voiceURI:'Daniel'},
+  {name:'Strange US voice',lang:'en-US',voiceURI:'badUS'},
+  {name:'Samantha',lang:'en-US',voiceURI:'Samantha'}
+ ];
+ const h=harness(ios,'en-GB',null,null,'Mozilla/5.0 (iPhone; CPU iPhone OS 19)');
+ assert.equal(h.voiceSelect.options[1].textContent,'Daniel','All voices still shown on iOS');
+ assert.equal(h.voiceSelect.value,h.voiceSelect.options[1].value,'Prefer Daniel if available');
+ h.click(h.button('data-speak-word','hello'));
+ assert.equal(h.spoken.at(-1).voice.name,'Daniel');
+ h.change('en-US');
+ assert.equal(h.voiceSelect.value,h.voiceSelect.options[1].value,'Prefer Samantha if available');
+ h.click(h.button('data-speak-sentence','Hello from Word Quest.'));
+ assert.equal(h.spoken.at(-1).voice.name,'Samantha');
+ const override={'en-GB':{name:'Bad UK voice',uri:'badUK'}};
+ const saved=harness(ios,'en-GB',null,override,'iPhone');
+ assert.equal(saved.voiceSelect.value,saved.voiceSelect.options[0].value,'Honor explicitly saved iOS voice');
+}
+
+console.log('Speech tests passed (compact panel, UK/US voices, iOS preferences, persistence, preview, speed).');
