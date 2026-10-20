@@ -11,4 +11,6 @@ for p in ["quest.js","unit1.html"]:
 assert "semester_v1" in (root/"quest.js").read_text()
 assert "wordquest_speech_accent_v1" in (root/"speech.js").read_text(encoding="utf8")
 assert "speech-accent-control" in (root/"speech.css").read_text(encoding="utf8")
-print("Word Quest v1.4.3 static checks passed")
+assert "wordquest_speech_speed_v1" in (root/"speech.js").read_text(encoding="utf8")
+assert "speech-speed-range" in (root/"speech.css").read_text(encoding="utf8")
+print("Word Quest v1.4.4 static checks passed")
