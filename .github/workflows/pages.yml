@@ -16,9 +16,10 @@ jobs:
         run: |
           python3 tests/check_site.py
           node --check quest.js
-          node --check unit1.js
+          node --check unit1-data.js
           node --check site-shell.js
           node tests/test_layout.js
+          node tests/test_engine.js
           node --check content.js
           node --check speech.js
           node --check site-version.js
