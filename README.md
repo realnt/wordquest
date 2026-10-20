@@ -1,6 +1,6 @@
 # Word Quest — Grade 7 Semester 1
 
-**Version:** 1.4.5 · **6 units** · **109 missions** · **265 textbook vocabulary/expression entries**
+**Version:** 1.4.6 · **6 units** · **109 missions** · **265 textbook vocabulary/expression entries**
 
 Interactive English vocabulary and etymology game aligned with Shanghai 五四制 2024 Grade 7.
 
@@ -9,7 +9,8 @@ Interactive English vocabulary and etymology game aligned with Shanghai 五四�
 - Native speech synthesis for **Word Vault words and English mission passages**; small audio controls, no external API.
 - **Accent selector:** Choose 🇬🇧 UK or 🇺🇸 US in the header of any unit. The choice is remembered across all units on the same website origin (`wordquest_speech_accent_v1`), independently from mission progress. Default: UK. Availability depends on browser/system voices; when the selected accent is unavailable the browser may substitute its native voice.
 - **Speaking speed:** Adjustable from **0.80× to 1.20×** (default **1.00×** for words and sentences); choice persists per browser/device as `wordquest_speech_speed_v1`, separately from accent and game progress. On iPhone this allows more natural pacing than the slower fixed rates used previously. The browser and OS may interpret speaking rates differently.
-- **Specific voice picker:** The Voice menu lists only the `en-GB` or `en-US` voices reported by `speechSynthesis.getVoices()` on the current device (for example Microsoft Hazel / Susan or Google UK English Female / Male). `Automatic` keeps the previous default selection. Students can use the ▶ preview before choosing; UK and US voice preferences are saved independently in `wordquest_speech_voice_v1`. If a saved voice disappears, playback falls back to the current accent's automatic voice and shows a note. iPhone and PC may expose completely different voice lists; updates to voices are detected when available.
+- **Specific voice picker:** The Voice menu lists only the `en-GB` or `en-US` voices reported by `speechSynthesis.getVoices()` on the current device (for example Microsoft Hazel / Susan or Google UK English Female / Male). The first available voice for the selected accent is chosen by default; there is no redundant `Automatic` entry. Students can use the ▶ preview before choosing; UK and US voice preferences are saved independently in `wordquest_speech_voice_v1`. If a saved voice disappears, playback falls back to the first available voice for the current accent and shows a note. Selecting different voice objects does not guarantee an audible difference if the operating system maps them to similar or shared synthesizers. iPhone and PC may expose completely different voice lists; updates to voices are detected when available.
+- **Unified controls:** The accent and voice dropdowns now match the light-teal Word Quest navigation styling, with compact mobile wrapping.
 - Mobile-first layout; the existing XP and saved-progress keys are preserved.
 - Short, visible word-history explanations; no additional Explore More click.
 
