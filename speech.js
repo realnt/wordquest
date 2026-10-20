@@ -123,7 +123,7 @@
         }
         const value=selected?voiceToken(selected):'';
         if(voiceSelect.value!==value)voiceSelect.value=value;
-        voiceSelect.disabled=!supported||choices.length===0;
+        voiceSelect.disabled=!supported;
       }
       const note=control.querySelector('.speech-accent-note');
       if(note){
