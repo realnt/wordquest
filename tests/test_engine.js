@@ -145,7 +145,7 @@ for(let unit=3;unit<=6;unit++){
  assert.match(g.app.innerHTML,/Practice complete/);
  assert.equal(g.data.get(KEY1),storedBefore,'Perfect practice cannot duplicate XP');
  g.click('replay');
- for(let n=0;n<3;n++)g.click('check');
+ for(let n=0;n<3;n++){g.click('part',{n:'0'});g.click('check');}
  assert.match(g.app.innerHTML,/Practice complete/,'Auto-unlock after three mistakes works in practice');
  assert.equal(g.data.get(KEY1),storedBefore,'Practice misses and auto-unlocks must not change XP or misses');
  const refresh=game(1,{[KEY1]:storedBefore});
