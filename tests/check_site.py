@@ -9,4 +9,6 @@ for p in ["quest.js","unit1.html"]:
  data=(root/p).read_text(encoding="utf8")
  assert 'speak-word' in data and 'speak-sentence' in data,f"Missing controls: {p}"
 assert "semester_v1" in (root/"quest.js").read_text()
-print("Word Quest v1.4.2 static checks passed")
+assert "wordquest_speech_accent_v1" in (root/"speech.js").read_text(encoding="utf8")
+assert "speech-accent-control" in (root/"speech.css").read_text(encoding="utf8")
+print("Word Quest v1.4.3 static checks passed")
