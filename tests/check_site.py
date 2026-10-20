@@ -15,4 +15,6 @@ assert "wordquest_speech_speed_v1" in (root/"speech.js").read_text(encoding="utf
 assert "speech-speed-range" in (root/"speech.css").read_text(encoding="utf8")
 assert "wordquest_speech_voice_v1" in (root/"speech.js").read_text(encoding="utf8")
 assert "speech-voice-select" in (root/"speech.js").read_text(encoding="utf8")
-print("Word Quest v1.4.5 static checks passed")
+assert "Automatic</option>" not in (root/"speech.js").read_text(encoding="utf8")
+assert "background-image:linear-gradient" in (root/"speech.css").read_text(encoding="utf8")
+print("Word Quest v1.4.6 static checks passed")
