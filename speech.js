@@ -52,14 +52,15 @@
       const note=control.querySelector('.speech-accent-note');
       if(note){
         note.hidden=!unavailable;
-        note.textContent=unavailable?LOCALES[accent]+' voice not installed; device may substitute.':'';
+        const message=unavailable?LOCALES[accent]+' voice not installed; device may substitute.':'';
+        if(note.textContent!==message)note.textContent=message;
       }
     });
   }
   function ensureControl(){
     const header=document.querySelector('#app .top, #root .navline');
     if(!header)return;
-    if(header.querySelector('.speech-accent-control')){refreshAvailability();return;}
+    if(header.querySelector('.speech-accent-control'))return;
     const control=document.createElement('label');
     control.className='speech-accent-control';
     control.innerHTML='<span class="speech-accent-icon" aria-hidden="true">🔊</span>'+
