@@ -88,7 +88,8 @@ test('voice settings remain compact and preferences persist',async({page})=>{
   await expect(panel).toBeHidden();
   await trigger.click();
   await expect(panel.locator('.speech-accent-select')).toHaveValue('en-US');
-  await expect(panel.locator('.speech-speed-range')).toHaveValue('1.20');
+  await expect(panel.locator('.speech-speed-range')).toHaveValue('1.2');
+  await expect.poll(()=>storage(page,'wordquest_speech_speed_v1')).toBe('1.20');
 });
 
 test('homepage: six units and version displayed',async({page})=>{
