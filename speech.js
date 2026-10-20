@@ -3,10 +3,22 @@
 (function(){
   'use strict';
   const KEY='wordquest_speech_accent_v1'; // Independent from mission/progress storage.
+  const SPEED_KEY='wordquest_speech_speed_v1'; // Same preference across all six units, per device/browser.
   const supported=('speechSynthesis' in window)&&('SpeechSynthesisUtterance' in window);
   const LOCALES={'en-GB':'UK','en-US':'US'};
   let accent='en-GB'; // Preserve the prior UK-default behavior.
   try { const saved=localStorage.getItem(KEY); if(Object.hasOwn(LOCALES,saved)) accent=saved; } catch(_e){}
+  // A natural 1.00× default avoids unnecessarily slow iOS playback.
+  // The old v1.4.3 rates were 0.86× words / 0.94× sentences.
+  let speed=1.0;
+  try {
+    const saved=localStorage.getItem(SPEED_KEY);
+    if(saved!==null){
+      const number=Number(saved);
+      if(Number.isFinite(number)&&number>=0.8&&number<=1.2)
+        speed=Math.round(number*20)/20;
+    }
+  } catch(_e){}
   let active=null, utterance=null, seq=0;
 
   function status(message){
@@ -49,6 +61,11 @@
     document.querySelectorAll('.speech-accent-control').forEach(control=>{
       const select=control.querySelector('.speech-accent-select');
       if(select&&select.value!==accent)select.value=accent;
+      const range=control.querySelector('.speech-speed-range');
+      if(range&&Number(range.value)!==speed)range.value=speed.toFixed(2);
+      const value=control.querySelector('.speech-speed-value');
+      const display=speed.toFixed(2)+'×';
+      if(value&&value.textContent!==display)value.textContent=display;
       const note=control.querySelector('.speech-accent-note');
       if(note){
         note.hidden=!unavailable;
@@ -61,12 +78,16 @@
     const header=document.querySelector('#app .top, #root .navline');
     if(!header)return;
     if(header.querySelector('.speech-accent-control'))return;
-    const control=document.createElement('label');
+    const control=document.createElement('div');
     control.className='speech-accent-control';
-    control.innerHTML='<span class="speech-accent-icon" aria-hidden="true">🔊</span>'+
+    control.innerHTML='<label class="speech-accent-picker"><span class="speech-accent-icon" aria-hidden="true">🔊</span>'+
       '<span class="speech-accent-name">Accent</span>'+
       '<select class="speech-accent-select" aria-label="English pronunciation accent">'+
-      '<option value="en-GB">🇬🇧 UK</option><option value="en-US">🇺🇸 US</option></select>'+
+      '<option value="en-GB">🇬🇧 UK</option><option value="en-US">🇺🇸 US</option></select></label>'+
+      '<label class="speech-speed-label" for="wordquest-speech-speed">Speed</label>'+
+      '<input id="wordquest-speech-speed" class="speech-speed-range" type="range"'+
+      ' min="0.8" max="1.2" step="0.05" value="1.0" aria-label="Speaking speed">'+
+      '<output class="speech-speed-value" for="wordquest-speech-speed">1.00×</output>'+
       '<span class="speech-accent-note" hidden></span>';
     const nav=header.querySelector('.topnav, .tools');
     if(nav)nav.insertAdjacentElement('afterend',control);
@@ -80,6 +101,16 @@
     try{localStorage.setItem(KEY,accent);}catch(_e){}
     refreshAvailability();
     status('Pronunciation set to '+(locale==='en-GB'?'British':'American')+' English.');
+  }
+  function changeSpeed(value){
+    const requested=Number(value);
+    if(!Number.isFinite(requested)||requested<0.8||requested>1.2)return;
+    const nextSpeed=Math.round(requested*20)/20;
+    if(speed!==nextSpeed)stop(); // New speed is applied to the next playback.
+    speed=nextSpeed;
+    try{localStorage.setItem(SPEED_KEY,speed.toFixed(2));}catch(_e){}
+    refreshAvailability();
+    status('Speaking speed set to '+speed.toFixed(2)+'×.');
   }
   function play(button){
     if(!supported){status('Speech unavailable. / 当前浏览器不支持语音朗读。');return;}
@@ -97,7 +128,7 @@
     if(matching)next.voice=matching;
     // The requested locale is explicit even when the browser has no listed matching voice.
     next.lang=accent;
-    next.rate=sentence?0.94:0.86;
+    next.rate=speed;
     next.pitch=1;
     active=button;utterance=next;
     button.classList.add('speaking');
@@ -121,8 +152,10 @@
     play(button);
   });
   document.addEventListener('change',event=>{
-    if(!event.target.matches('.speech-accent-select'))return;
-    changeAccent(event.target.value);
+    if(event.target.matches('.speech-accent-select'))changeAccent(event.target.value);
+  });
+  document.addEventListener('input',event=>{
+    if(event.target.matches('.speech-speed-range'))changeSpeed(event.target.value);
   });
   if(supported&&typeof window.speechSynthesis.addEventListener==='function'){
     window.speechSynthesis.addEventListener('voiceschanged',refreshAvailability);
