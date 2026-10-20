@@ -61,3 +61,5 @@
   .wq-brand{font-size:16px}
   .wq-navbtn{font-size:11px;padding:7px 8px}
 }
+/* Homepage details previously embedded in index.html. */
+.overview-wide{display:flex;gap:18px;align-items:center;flex-wrap:wrap}.overview-wide strong{font-size:20px}.about a{white-space:normal}.badge{font-size:11px;color:#2c7066;background:#e3f5ef;border-radius:8px;padding:5px 8px;font-weight:800}
