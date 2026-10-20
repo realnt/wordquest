@@ -157,7 +157,22 @@ const voices=[
  assert.ok(names().includes('Google UK English Male'));
  assert.ok(!names().includes('Google US English'),'Filter by UK accent');
  assert.ok(!names().some(name=>name.includes('Huihui')),'Exclude non-English voices');
- assert.ok(names().includes('Automatic'),'Offer automatic voice choice');
+ assert.equal(names()[0],'Microsoft Hazel - English (United Kingdom)','First UK voice is default');
+ assert.ok(!names().includes('Automatic'),'Do not offer redundant Automatic option');
+ assert.equal(h.voiceSelect.options[0].value,h.voiceSelect.value,
+   'Dropdown visibly selects the first voice by default');
+ h.click(h.button('data-speak-word','hello'));
+ assert.equal(h.spoken.at(-1).voice.name,'Microsoft Hazel - English (United Kingdom)',
+   'Initial playback and visible selection agree');
+ const hazelToken=h.voiceSelect.options[0].value;
+ const susanToken=h.voiceSelect.options.find(option=>option.textContent.includes('Microsoft Susan')).value;
+ assert.notEqual(hazelToken,susanToken,'Hazel and Susan remain distinct browser choices');
+ h.changeVoice(susanToken);
+ h.click(h.button('data-speech-preview',''));
+ assert.equal(h.spoken.at(-1).voice.voiceURI,'Susan','Explicit Susan selection is passed to speechSynthesis');
+ h.changeVoice(hazelToken);
+ h.click(h.button('data-speech-preview',''));
+ assert.equal(h.spoken.at(-1).voice.voiceURI,'Hazel','Explicit Hazel selection is passed to speechSynthesis');
  const ukChoice=h.voiceSelect.options.find(option=>option.textContent==='Google UK English Female').value;
  h.changeVoice(ukChoice);
  h.click(h.button('data-speak-word','water'));
@@ -184,16 +199,21 @@ const voices=[
  assert.equal(h.voiceSelect.value,ukChoice,'Chosen voice restored after rerender');
  const reloaded=harness(desktop,'en-GB',null,pref);
  assert.equal(reloaded.voiceSelect.value,ukChoice,'Choice persists after page reload');
- reloaded.changeVoice('');
+ const firstToken=reloaded.voiceSelect.options[0].value;
+ reloaded.changeVoice(firstToken);
  reloaded.click(reloaded.button('data-speak-word','test'));
- assert.equal(reloaded.spoken.at(-1).voice.name,'Microsoft Hazel - English (United Kingdom)','Automatic reverts to preferred UK system voice');
- assert.ok(!JSON.parse(reloaded.data.get('wordquest_speech_voice_v1'))['en-GB'],'Reset only UK selection');
+ assert.equal(reloaded.spoken.at(-1).voice.name,'Microsoft Hazel - English (United Kingdom)',
+   'Choosing the first UK voice is equivalent to the former default');
+ assert.equal(JSON.parse(reloaded.data.get('wordquest_speech_voice_v1'))['en-GB'].name,
+   'Microsoft Hazel - English (United Kingdom)','Explicit first choice is saved');
 }
 {
  // Safari may have no voices on initial load; a voiceschanged event populates them later.
  const upcoming=[];
  const h=harness(upcoming);
- assert.equal(h.voiceSelect.options.length,1,'Automatic is shown before voices load');
+ assert.equal(h.voiceSelect.options.length,1,'Loading placeholder before voices load');
+ assert.equal(h.voiceSelect.options[0].textContent,'Loading voices…');
+ assert.ok(!h.voiceSelect.options.some(o=>o.textContent==='Automatic'));
  assert.equal(h.voiceSelect.disabled,false,'Picker stays focusable while voices load');
  upcoming.push({name:'Samantha',lang:'en-US',voiceURI:'com.apple.samantha',localService:true});
  h.change('en-US');
@@ -205,7 +225,8 @@ const voices=[
  assert.equal(h.spoken.at(-1).voice.name,'Samantha');
  const missing=harness([{name:'Other UK',lang:'en-GB',voiceURI:'uk',localService:true}],
    'en-GB',null,{'en-GB':{name:'Samantha',uri:'com.apple.samantha'}});
- assert.equal(missing.voiceSelect.value,'','Missing voice falls back to automatic');
+ assert.equal(missing.voiceSelect.value,missing.voiceSelect.options[0].value,
+   'Missing saved voice falls back to the first available voice');
  assert.equal(missing.note.hidden,false,'Explain missing preference');
 }
-console.log('Speech tests passed (UK, US, voice filtering, selection, preview, persistence, speed and rerender).');
+console.log('Speech tests passed (UK/US, first default, distinct voice objects, preview, saved choices, mobile reload, speed).');
