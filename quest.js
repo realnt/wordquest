@@ -118,7 +118,7 @@ function wrong(){
  rt.tries++;
  state.mistakes[state.current]=(state.mistakes[state.current]||0)+1;
  rt.selected=[];
- if(first&&rt.tries>=3)mark();
+ if(first&&rt.tries>=3){rt.hint=2;mark();}
  else{store();draw();}
 }
 function go(n){if(n>state.unlocked||n<0||n>=puzzles.length)return;state.current=n;state.tab='play';rt={...rt,hint:0,tries:0,selected:[],wrong:-1,answer:false,revealed:{}};store();draw();window.scrollTo({top:0,behavior:'smooth'})}
