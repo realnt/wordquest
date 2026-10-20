@@ -5,14 +5,17 @@ const path=require('node:path');
 const vm=require('node:vm');
 const script=fs.readFileSync(path.join(__dirname,'../speech.js'),'utf8');
 
-function harness(voices, saved='en-GB') {
+function harness(voices, saved='en-GB', savedSpeed=null) {
   const handlers={}, voiceHandlers={}, spoken=[], data=new Map([
     ['wordquest_speech_accent_v1',saved],
+    ['wordquest_speech_speed_v1',savedSpeed],
     ['wordquest_g7u1_v1','{"score":42}']
   ]);
   let control=null, observe=null, statusEl=null, cancels=0;
   const select={value:'',matches:q=>q==='.speech-accent-select'};
   const note={hidden:true,textContent:''};
+  const range={value:'1.0',matches:q=>q==='.speech-speed-range'};
+  const output={textContent:''};
   const header={
     querySelector:q=>q==='.speech-accent-control'?control:q==='.topnav, .tools'?nav:null,
     appendChild:el=>{control=el;}
@@ -28,7 +31,7 @@ function harness(voices, saved='en-GB') {
     hasAttribute(k){return Object.prototype.hasOwnProperty.call(this.attrs,k);}
     getAttribute(k){return this.attrs[k]||null;}
     set innerHTML(html){this.html=html;}
-    querySelector(q){return q==='.speech-accent-select'?select:q==='.speech-accent-note'?note:null;}
+    querySelector(q){return q==='.speech-accent-select'?select:q==='.speech-accent-note'?note:q==='.speech-speed-range'?range:q==='.speech-speed-value'?output:null;}
   }
   const document={
     readyState:'complete',body,
@@ -63,8 +66,9 @@ function harness(voices, saved='en-GB') {
   };
   const click=el=>handlers.click({target:el,preventDefault(){}});
   const change=value=>{select.value=value;handlers.change({target:select});};
+  const speedInput=value=>{range.value=value;handlers.input({target:range});};
   return {
-    click,change,button,spoken,data,select,note,voiceHandlers,header,
+    click,change,speedInput,button,spoken,data,select,note,range,output,voiceHandlers,header,
     redraw:()=>{control=null;observe();},
     getControl:()=>control,getCancels:()=>cancels
   };
@@ -80,24 +84,33 @@ const voices=[
  h.click(h.button('data-speak-word','schedule'));
  assert.equal(h.spoken.at(-1).lang,'en-GB');
  assert.equal(h.spoken.at(-1).voice.name,'UK English');
- assert.equal(h.spoken.at(-1).rate,0.86);
+ assert.equal(h.spoken.at(-1).rate,1.0,'Natural speed is the default for words');
+ assert.equal(h.range.value,'1.00');
+ assert.equal(h.output.textContent,'1.00×');
  h.change('en-US');
  assert.equal(h.data.get('wordquest_speech_accent_v1'),'en-US');
  assert.equal(h.data.get('wordquest_g7u1_v1'),'{"score":42}','Progress is unchanged');
+ h.speedInput('1.15');
+ assert.equal(h.data.get('wordquest_speech_speed_v1'),'1.15','Speed persisted independently');
+ assert.equal(h.data.get('wordquest_g7u1_v1'),'{"score":42}','XP/progress remains unchanged');
  h.click(h.button('data-speak-sentence','Read the sentence.'));
  assert.equal(h.spoken.at(-1).lang,'en-US');
  assert.equal(h.spoken.at(-1).voice.name,'US English');
- assert.equal(h.spoken.at(-1).rate,0.94);
+ assert.equal(h.spoken.at(-1).rate,1.15,'Sentence uses chosen speed');
  assert.ok(h.getCancels()>0,'Accent change cancels existing audio');
  h.redraw();
  assert.ok(h.getControl(),'Selector reappears after mission rerender');
  assert.equal(h.select.value,'en-US');
+ assert.equal(h.range.value,'1.15');
+ assert.equal(h.output.textContent,'1.15×');
 }
 {
- const h=harness(voices,'en-US');
+ const h=harness(voices,'en-US','1.20');
  assert.equal(h.select.value,'en-US','Saved accent restored in another unit');
+ assert.equal(h.range.value,'1.20','Saved speed restored in another unit');
  h.click(h.button('data-speak-word','color'));
  assert.equal(h.spoken.at(-1).voice.name,'US English');
+ assert.equal(h.spoken.at(-1).rate,1.20);
 }
 {
  const h=harness([voices[1]],'en-US');
@@ -107,4 +120,17 @@ const voices=[
  assert.equal(h.spoken.at(-1).voice,null,'Do not force a UK voice for a US preference');
  h.voiceHandlers.voiceschanged();
 }
-console.log('Speech accent tests passed (UK, US, persistence, fallback, rerender, rates).');
+{
+ const h=harness(voices,'en-GB','not-a-number');
+ assert.equal(h.range.value,'1.00','Invalid storage falls back to normal speed');
+ h.speedInput('0.80');
+ h.click(h.button('data-speak-word','hello'));
+ assert.equal(h.spoken.at(-1).rate,0.80,'Minimum rate supported');
+ h.speedInput('1.20');
+ h.click(h.button('data-speak-sentence','One full sentence.'));
+ assert.equal(h.spoken.at(-1).rate,1.20,'Maximum rate supported');
+ const previous=h.data.get('wordquest_speech_speed_v1');
+ h.speedInput('2.00');
+ assert.equal(h.data.get('wordquest_speech_speed_v1'),previous,'Reject rates outside configured range');
+}
+console.log('Speech tests passed (UK, US, speed, persistence, fallback and redraw).');
