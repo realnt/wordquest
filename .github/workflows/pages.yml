@@ -18,6 +18,7 @@ jobs:
           node --check quest.js
           node --check content.js
           node --check speech.js
+          node tests/test_speech.js
   publish:
     if: github.event_name != 'pull_request'
     needs: validate
