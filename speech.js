@@ -69,6 +69,18 @@
     const matches=voices.filter(v=>String(v.lang||'').replace('_','-').toLowerCase()===locale.toLowerCase());
     // The first matching voice is the default shown in the selector.
     // A saved explicit voice selection takes precedence over this fallback.
+    // On iOS, prefer voices confirmed usable on the target iPhone when present.
+    // We do not remove other voices: availability and quality vary by iOS version.
+    const ios=typeof navigator!=='undefined'&&/iPhone|iPad|iPod/.test(navigator.userAgent||'');
+    if(ios){
+      const preferred=locale==='en-GB'?'Daniel':'Samantha';
+      const voice=matches.find(v=>{
+        const name=String(v.name||'').trim().toLowerCase();
+        const target=preferred.toLowerCase();
+        return name===target||name.startsWith(target+' (')||name.startsWith(target+' -');
+      });
+      if(voice)return voice;
+    }
     return matches[0]||null;
   }
   function voiceToken(voice){
@@ -95,7 +107,7 @@
     const unavailable=supported&&voices.length>0&&choices.length===0;
     const wanted=chosenVoices[accent];
     const selected=wanted?savedVoice(accent,voices):null;
-    const actual=selected||choices[0]||null;
+    const actual=selected||matchingVoice(accent,voices);
     document.querySelectorAll('.speech-accent-control').forEach(control=>{
       const select=control.querySelector('.speech-accent-select');
       if(select&&select.value!==accent)select.value=accent;
@@ -144,14 +156,36 @@
         note.hidden=!message;
         if(note.textContent!==message)note.textContent=message;
       }
+      const trigger=control.closest('.speech-settings-host')?.querySelector('.speech-settings-trigger');
+      if(trigger){
+        const current=actual?.name||'Voice';
+        const simplified=current.replace(/^Microsoft /,'').replace(/ - English \(.*\)$/,'')
+          .replace(/^Google (UK|US) English /,'Google $1 ');
+        const shortName=simplified.length>23?simplified.slice(0,22)+'…':simplified;
+        const summary='🔊 '+LOCALES[accent]+' · '+shortName;
+        if(trigger.textContent!==summary)trigger.textContent=summary;
+        trigger.title='Voice settings: '+LOCALES[accent]+', '+current+', '+speed.toFixed(2)+'×';
+      }
     });
   }
   function ensureControl(){
     const header=document.querySelector('#app .top, #root .navline');
     if(!header)return;
-    if(header.querySelector('.speech-accent-control'))return;
+    if(header.querySelector('.speech-settings-host'))return;
+    const host=document.createElement('div');
+    host.className='speech-settings-host';
+    const trigger=document.createElement('button');
+    trigger.type='button';
+    trigger.className='speech-settings-trigger';
+    trigger.setAttribute('aria-expanded','false');
+    trigger.setAttribute('aria-label','Open voice settings');
+    trigger.textContent='🔊 Voice settings';
+    host.appendChild(trigger);
     const control=document.createElement('div');
     control.className='speech-accent-control';
+    control.hidden=true;
+    control.setAttribute('role','group');
+    control.setAttribute('aria-label','Voice settings');
     control.innerHTML='<label class="speech-accent-picker"><span class="speech-accent-icon" aria-hidden="true">🔊</span>'+
       '<span class="speech-accent-name">Accent</span>'+
       '<select class="speech-accent-select" aria-label="English pronunciation accent">'+
@@ -165,10 +199,12 @@
       '<input id="wordquest-speech-speed" class="speech-speed-range" type="range"'+
       ' min="0.8" max="1.2" step="0.05" value="1.0" aria-label="Speaking speed">'+
       '<output class="speech-speed-value" for="wordquest-speech-speed">1.00×</output>'+
-      '<span class="speech-accent-note" hidden></span>';
+      '<span class="speech-accent-note" hidden></span>'+
+      '<button type="button" class="speech-settings-confirm">✓ Done</button>';
+    host.appendChild(control);
     const nav=header.querySelector('.topnav, .tools');
-    if(nav)nav.insertAdjacentElement('afterend',control);
-    else header.appendChild(control);
+    if(nav)nav.insertAdjacentElement('afterend',host);
+    else header.appendChild(host);
     refreshAvailability();
   }
   function changeAccent(locale){
@@ -234,11 +270,38 @@
     try{window.speechSynthesis.speak(next);}catch(_e){finish();status('Speech playback unavailable.');}
   }
 
+  function setOpen(host,open){
+    const panel=host.querySelector('.speech-accent-control');
+    const trigger=host.querySelector('.speech-settings-trigger');
+    if(!panel||!trigger)return;
+    panel.hidden=!open;
+    trigger.setAttribute('aria-expanded',String(open));
+    if(open)refreshAvailability();
+    else trigger.focus?.();
+  }
   document.addEventListener('click',event=>{
+    const trigger=event.target.closest('.speech-settings-trigger');
+    if(trigger){
+      const host=trigger.closest('.speech-settings-host');
+      if(host)setOpen(host,host.querySelector('.speech-accent-control').hidden);
+      return;
+    }
+    const done=event.target.closest('.speech-settings-confirm');
+    if(done){
+      const host=done.closest('.speech-settings-host');
+      if(host)setOpen(host,false);
+      status('Voice preferences saved.');
+      return;
+    }
     const button=event.target.closest('[data-speak-word],[data-speak-sentence],[data-speech-preview]');
     if(!button)return;
     event.preventDefault();
     play(button);
+  });
+  document.addEventListener('keydown',event=>{
+    if(event.key!=='Escape')return;
+    const host=event.target.closest?.('.speech-settings-host');
+    if(host&&!host.querySelector('.speech-accent-control').hidden)setOpen(host,false);
   });
   document.addEventListener('change',event=>{
     if(event.target.matches('.speech-accent-select'))changeAccent(event.target.value);

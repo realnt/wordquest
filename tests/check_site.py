@@ -17,4 +17,10 @@ assert "wordquest_speech_voice_v1" in (root/"speech.js").read_text(encoding="utf
 assert "speech-voice-select" in (root/"speech.js").read_text(encoding="utf8")
 assert "Automatic</option>" not in (root/"speech.js").read_text(encoding="utf8")
 assert "background-image:linear-gradient" in (root/"speech.css").read_text(encoding="utf8")
-print("Word Quest v1.4.6 static checks passed")
+for page in ["index.html"]+[f"unit{i}.html" for i in range(1,7)]:
+ assert 'site-version.js' in (root/page).read_text(encoding="utf8"),f"No version script on {page}"
+assert "const VERSION='1.4.7'" in (root/"site-version.js").read_text(encoding="utf8")
+speech=(root/"speech.js").read_text(encoding="utf8")
+assert "speech-settings-trigger" in speech and "speech-settings-confirm" in speech
+assert "new MutationObserver(ensureControl)" in speech
+print("Word Quest v1.4.7 static checks passed")

@@ -1,6 +1,6 @@
 # Word Quest — Grade 7 Semester 1
 
-**Version:** 1.4.6 · **6 units** · **109 missions** · **265 textbook vocabulary/expression entries**
+**Version:** 1.4.7 · **6 units** · **109 missions** · **265 textbook vocabulary/expression entries**
 
 Interactive English vocabulary and etymology game aligned with Shanghai 五四制 2024 Grade 7.
 
@@ -10,7 +10,9 @@ Interactive English vocabulary and etymology game aligned with Shanghai 五四�
 - **Accent selector:** Choose 🇬🇧 UK or 🇺🇸 US in the header of any unit. The choice is remembered across all units on the same website origin (`wordquest_speech_accent_v1`), independently from mission progress. Default: UK. Availability depends on browser/system voices; when the selected accent is unavailable the browser may substitute its native voice.
 - **Speaking speed:** Adjustable from **0.80× to 1.20×** (default **1.00×** for words and sentences); choice persists per browser/device as `wordquest_speech_speed_v1`, separately from accent and game progress. On iPhone this allows more natural pacing than the slower fixed rates used previously. The browser and OS may interpret speaking rates differently.
 - **Specific voice picker:** The Voice menu lists only the `en-GB` or `en-US` voices reported by `speechSynthesis.getVoices()` on the current device (for example Microsoft Hazel / Susan or Google UK English Female / Male). The first available voice for the selected accent is chosen by default; there is no redundant `Automatic` entry. Students can use the ▶ preview before choosing; UK and US voice preferences are saved independently in `wordquest_speech_voice_v1`. If a saved voice disappears, playback falls back to the first available voice for the current accent and shows a note. Selecting different voice objects does not guarantee an audible difference if the operating system maps them to similar or shared synthesizers. iPhone and PC may expose completely different voice lists; updates to voices are detected when available.
-- **Unified controls:** The accent and voice dropdowns now match the light-teal Word Quest navigation styling, with compact mobile wrapping.
+- **Compact settings:** A single teal **🔊 UK/US · Voice** button replaces the always-visible controls. Tap to expand accent, voice, preview and speed; **✓ Done** collapses them. Preferences save as they change (also when closing without Done). The controls reappear only when requested, including after page refresh or changing missions.
+- **iOS voice preference:** When there is no saved manual choice and both are available, prefer Daniel for UK and Samantha for US based on device testing. Other voices remain selectable; some installed voices may be unreliable or sound unnatural in iOS Safari.
+- **Visible version:** The homepage and all six units show the single version number **v1.4.7** beside the Word Quest name. Future releases update `site-version.js` once.
 - Mobile-first layout; the existing XP and saved-progress keys are preserved.
 - Short, visible word-history explanations; no additional Explore More click.
 
@@ -27,9 +29,13 @@ python3 tests/check_site.py
 node --check quest.js
 node --check content.js
 node --check speech.js
+node --check site-version.js
 node tests/test_speech.js
 ```
 
 Progress is stored separately by browser and website origin using localStorage. No export/import or cloud synchronization is planned for v1.5.
 
 The game is unofficial and is not affiliated with the textbook publisher or Etymonline.
+
+## Voice differences between devices
+Chrome may expose Microsoft Hazel and Susan as different `SpeechSynthesisVoice` objects while the resulting audio is indistinguishable. The Web Speech API does not provide raw voice samples or guarantee each voice's audio will be unique. Where differences matter, try Google UK English Female/Male or another engine/voice. Voice names and quality are platform-dependent.
