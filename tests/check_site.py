@@ -13,4 +13,6 @@ assert "wordquest_speech_accent_v1" in (root/"speech.js").read_text(encoding="ut
 assert "speech-accent-control" in (root/"speech.css").read_text(encoding="utf8")
 assert "wordquest_speech_speed_v1" in (root/"speech.js").read_text(encoding="utf8")
 assert "speech-speed-range" in (root/"speech.css").read_text(encoding="utf8")
-print("Word Quest v1.4.4 static checks passed")
+assert "wordquest_speech_voice_v1" in (root/"speech.js").read_text(encoding="utf8")
+assert "speech-voice-select" in (root/"speech.js").read_text(encoding="utf8")
+print("Word Quest v1.4.5 static checks passed")
