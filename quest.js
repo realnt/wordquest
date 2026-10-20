@@ -98,9 +98,28 @@ function results(){const missed=Object.keys(state.mistakes).map(Number).filter(x
 function draw(){document.title='Word Quest · Unit '+unit+' · '+info.title;$.innerHTML=`<main class="container wq-page">${header()}${hero()}<div class="main-grid"><div>${state.tab==='vault'?vault():state.tab==='map'?map():state.tab==='results'?results():play()}</div>${side()}</div>${window.WordQuestShell.footer()}</main>`;
  if(state.tab==='vault'){const input=$.querySelector('#search');input.addEventListener('input',()=>{rt.query=input.value;let results=glossary.filter(([w,z])=>`${w} ${z}`.toLowerCase().includes(rt.query.trim().toLowerCase()));$.querySelector('#vault-results').innerHTML=results.map(([w,z])=>`<div class="vword"><div class="vault-pron-row"><b lang="en">${esc(w)}</b>${vaultSpeak(w)}</div><small>${esc(z)}</small></div>`).join('')||'<p>No matches.</p>';});}
 }
-function mark(revealed=false){const n=state.current;if(state.completed[n]===undefined){const points=revealed?0:Math.max(20,100-rt.hint*20-rt.tries*25);state.completed[n]=points;state.points+=points;state.unlocked=Math.max(state.unlocked,n+1);}rt.answer=true;store();draw()}
-function wrong(){rt.tries++;state.mistakes[state.current]=(state.mistakes[state.current]||0)+1;store();rt.selected=[];draw()}
+function mark(revealed=false){
+ const n=state.current;
+ if(state.completed[n]===undefined){
+   const deduction=first?Math.max(0,rt.tries-1)*25:rt.tries*25;
+   const points=revealed?0:Math.max(20,100-rt.hint*20-deduction);
+   state.completed[n]=points;
+   state.points+=points;
+   state.unlocked=Math.max(state.unlocked,n+1);
+ }
+ rt.answer=true;store();draw();
+}
+function wrong(){
+ rt.tries++;
+ state.mistakes[state.current]=(state.mistakes[state.current]||0)+1;
+ rt.selected=[];
+ if(first&&rt.tries>=3)mark();
+ else{store();draw();}
+}
 function go(n){if(n>state.unlocked||n<0||n>=puzzles.length)return;state.current=n;state.tab='play';rt={...rt,hint:0,tries:0,selected:[],wrong:-1,answer:false,revealed:{}};store();draw();window.scrollTo({top:0,behavior:'smooth'})}
-$.addEventListener('click',ev=>{const b=ev.target.closest('[data-action]');if(!b)return;const a=b.dataset.action,p=puzzles[state.current],n=Number(b.dataset.n);switch(a){case'view':state.tab=b.dataset.view;store();draw();break;case'jump':go(n);break;case'zh':state.zh=!state.zh;store();draw();break;case'translate':rt.revealed[b.dataset.id]=!rt.revealed[b.dataset.id];draw();break;case'hint':rt.hint=Math.min(2,rt.hint+1);draw();break;case'choose':if(n===p.answer)mark();else{rt.wrong=n;wrong();}break;case'part':if(!rt.selected.includes(n))rt.selected.push(n);draw();break;case'remove':rt.selected.splice(n,1);draw();break;case'clear':rt.selected=[];draw();break;case'check':{if(!rt.selected.length)break;const picked=rt.selected.map(i=>p.parts[i]).join('').replace(/\s+/g,'').toLowerCase();const target=p.word.replace(/\s+/g,'').toLowerCase();if(picked===target)mark();else wrong();break;}case'reveal':mark(true);break;case'next':if(state.current>=puzzles.length-1){state.tab='results';store();draw();window.scrollTo({top:0,behavior:'smooth'})}else go(state.current+1);break;case'replay':go(state.current);break;case'restart':if(window.confirm('Clear progress for Unit '+unit+'? / 确定重置本单元进度？')){state=defaults();rt={hint:0,tries:0,selected:[],wrong:-1,answer:false,revealed:{},query:'',mode:'all'};store();draw();}break;}});
+$.addEventListener('click',ev=>{const b=ev.target.closest('[data-action]');if(!b)return;const a=b.dataset.action,p=puzzles[state.current],n=Number(b.dataset.n);switch(a){case'view':state.tab=b.dataset.view;store();draw();break;case'jump':go(n);break;case'zh':state.zh=!state.zh;store();draw();break;case'translate':rt.revealed[b.dataset.id]=!rt.revealed[b.dataset.id];draw();break;case'hint':rt.hint=Math.min(2,rt.hint+1);draw();break;case'choose':if(n===p.answer)mark();else{rt.wrong=n;wrong();}break;case'part':if(!rt.selected.includes(n))rt.selected.push(n);draw();break;case'remove':rt.selected.splice(n,1);draw();break;case'clear':rt.selected=[];draw();break;case'check':{if(!rt.selected.length)break;const parts=rt.selected.map(i=>p.parts[i]);
+ const valid=p.answerParts?JSON.stringify(parts)===JSON.stringify(p.answerParts):
+ parts.join('').replace(/\s+/g,'').toLowerCase()===p.word.replace(/\s+/g,'').toLowerCase();
+ if(valid)mark();else wrong();break;}case'reveal':mark(true);break;case'next':if(state.current>=puzzles.length-1){state.tab='results';store();draw();window.scrollTo({top:0,behavior:'smooth'})}else go(state.current+1);break;case'replay':go(state.current);break;case'restart':if(window.confirm('Clear progress for Unit '+unit+'? / 确定重置本单元进度？')){state=defaults();if(first)originalFirstState={};rt={hint:0,tries:0,selected:[],wrong:-1,answer:false,revealed:{},query:'',mode:'all'};store();draw();}break;}});
 draw();
 })();
