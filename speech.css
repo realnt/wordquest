@@ -19,3 +19,15 @@
 .speech-accent-note{font-size:11px;font-weight:500;color:#9a521e;line-height:1.3;flex-basis:100%}
 .speech-accent-note[hidden]{display:none}
 @media(max-width:560px){.speech-accent-control{padding:4px 6px;min-height:32px;gap:3px}.speech-accent-name{display:none}.speech-accent-select{font-size:12px;min-width:61px}}
+
+/* v1.4.4 · Compact configurable speech speed, 0.80–1.20×. */
+.speech-accent-picker{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.speech-speed-label{font-weight:700;font-size:12px;white-space:nowrap}
+.speech-speed-range{width:88px;height:24px;margin:0 2px;accent-color:#087c67;cursor:pointer;touch-action:pan-y}
+.speech-speed-range:focus-visible{outline:2px solid #12886f;outline-offset:3px;border-radius:5px}
+.speech-speed-value{min-width:40px;text-align:right;white-space:nowrap;font-size:11px;font-variant-numeric:tabular-nums;font-weight:800}
+@media(max-width:560px){
+  .speech-accent-control{gap:5px}
+  .speech-speed-range{width:86px;min-height:32px}
+  .speech-speed-label{font-size:11px}
+}
