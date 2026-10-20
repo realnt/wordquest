@@ -39,6 +39,30 @@ function game(unit,saved){
 const KEY1='wordquest_g7u1_v1',KEY2='wordquest_g7u2_semester_v1';
 {
  const g=game(1,{});
+ const data=g.context.window.WordQuestUnit1;
+ assert.equal(data.missions.length,23,'All original Unit 1 missions are present');
+ assert.equal(data.missionTranslations.length,23);
+ assert.equal(data.originMeta.length,23);
+ assert.equal(data.originExtras.length,23);
+ assert.equal(Object.values(data.glossary).flat().length,43,'All Unit 1 textbook words are present');
+ for(let n=0;n<23;n++){
+   const stored={current:n,maxUnlocked:23,earned:{},misses:{},score:0,view:'play',zh:true};
+   const m=game(1,{[KEY1]:JSON.stringify(stored)});
+   assert.ok(m.app.innerHTML.includes('data-action="choose"')||
+     m.app.innerHTML.includes('data-action="part"'),
+     'Mission '+(n+1)+' renders an answer control');
+   assert.match(m.app.innerHTML,/YOUR MISSION/);
+ }
+ const result=game(1,{[KEY1]:JSON.stringify({
+    current:22,maxUnlocked:23,earned:Object.fromEntries(Array.from({length:23},(_,i)=>[i,100])),
+    misses:{},score:2300,view:'result',zh:false
+ })});
+ assert.match(result.app.innerHTML,/You're a Word Explorer!/,
+    'Legacy completed game opens results screen');
+}
+
+{
+ const g=game(1,{});
  assert.match(g.app.innerHTML,/Catch the Wind/);
  assert.match(g.app.innerHTML,/WIND|wind/);
  assert.match(g.app.innerHTML,/data-action="part"/);
