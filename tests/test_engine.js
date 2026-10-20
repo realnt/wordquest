@@ -186,8 +186,9 @@ for(let unit=3;unit<=6;unit++){
  const g=game(5,{[key]:JSON.stringify(old)});
  assert.match(g.app.innerHTML,/data-action="replay"/);
  g.click('replay');
- assert.match(g.app.innerHTML,/data-action="choose"/);
- g.click('choose',{n:'1'}); // correctness doesn't affect persisted completion either way
+ assert.match(g.app.innerHTML,/data-action="part"/,'Completed Unit 5 word build can replay');
+ g.click('part',{n:'1'});g.click('part',{n:'0'});g.click('check'); // IM + POLITE
+ assert.match(g.app.innerHTML,/Practice complete/);
  assert.deepEqual(JSON.parse(g.data.get(key)),old,'Legacy saved Unit 5 progress unchanged');
 }
 
