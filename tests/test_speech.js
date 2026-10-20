@@ -85,7 +85,7 @@ const voices=[
  assert.equal(h.spoken.at(-1).lang,'en-GB');
  assert.equal(h.spoken.at(-1).voice.name,'UK English');
  assert.equal(h.spoken.at(-1).rate,1.0,'Natural speed is the default for words');
- assert.equal(h.range.value,'1.00');
+ assert.equal(Number(h.range.value),1.0);
  assert.equal(h.output.textContent,'1.00×');
  h.change('en-US');
  assert.equal(h.data.get('wordquest_speech_accent_v1'),'en-US');
@@ -122,7 +122,7 @@ const voices=[
 }
 {
  const h=harness(voices,'en-GB','not-a-number');
- assert.equal(h.range.value,'1.00','Invalid storage falls back to normal speed');
+ assert.equal(Number(h.range.value),1.0,'Invalid storage falls back to normal speed');
  h.speedInput('0.80');
  h.click(h.button('data-speak-word','hello'));
  assert.equal(h.spoken.at(-1).rate,0.80,'Minimum rate supported');
