@@ -10,38 +10,63 @@
 .spoken-english>.en,.spoken-english>.en-text{flex:1;min-width:0;overflow-wrap:anywhere}
 .speak-status{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(max-width:520px){.speak-word{width:32px;height:32px}.speak-sentence{width:28px;height:28px}.spoken-english{gap:7px}}
-/* v1.4.3 · Shared UK / US accent selector for all six units. */
-.speech-accent-control{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;background:#fff;border:1px solid #cddedc;border-radius:11px;padding:5px 7px;color:#284f5b;font-size:12px;font-weight:700;min-height:36px}
-.speech-accent-icon{line-height:1}
-.speech-accent-name{white-space:nowrap}
-.speech-accent-select{border:0;min-width:62px;max-width:95px;background:#fff;color:#214f5a;font-size:12px;font-weight:800;padding:3px 2px;border-radius:6px;cursor:pointer}
-.speech-accent-select:focus-visible{outline:2px solid #12886f;outline-offset:2px}
-.speech-accent-note{font-size:11px;font-weight:500;color:#9a521e;line-height:1.3;flex-basis:100%}
-.speech-accent-note[hidden]{display:none}
-@media(max-width:560px){.speech-accent-control{padding:4px 6px;min-height:32px;gap:3px}.speech-accent-name{display:none}.speech-accent-select{font-size:12px;min-width:61px}}
-
-/* v1.4.4 · Compact configurable speech speed, 0.80–1.20×. */
-.speech-accent-picker{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
-.speech-speed-label{font-weight:700;font-size:12px;white-space:nowrap}
-.speech-speed-range{width:88px;height:24px;margin:0 2px;accent-color:#087c67;cursor:pointer;touch-action:pan-y}
-.speech-speed-range:focus-visible{outline:2px solid #12886f;outline-offset:3px;border-radius:5px}
-.speech-speed-value{min-width:40px;text-align:right;white-space:nowrap;font-size:11px;font-variant-numeric:tabular-nums;font-weight:800}
-@media(max-width:560px){
-  .speech-accent-control{gap:5px}
-  .speech-speed-range{width:86px;min-height:32px}
-  .speech-speed-label{font-size:11px}
+/* v1.4.6: speech controls echo Word Quest's light teal navigation buttons. */
+.speech-accent-control{
+ display:flex;align-items:center;flex-wrap:wrap;gap:8px;box-sizing:border-box;
+ max-width:100%;min-width:0;padding:6px 9px;
+ background:#ffffffb8;color:#365868;
+ border:1px solid #c9dddd;border-radius:12px;
+ font-size:13px;font-weight:700;
 }
-
-/* v1.4.5 · Platform-aware voice picker and quick voice preview. */
-.speech-voice-picker{display:inline-flex;align-items:center;gap:5px;min-width:0}
-.speech-voice-label{font-size:12px;font-weight:700;white-space:nowrap}
-.speech-voice-select{width:clamp(120px,15vw,195px);max-width:195px;min-width:105px;border:1px solid #d2e2df;background:#fff;color:#214f5a;font-size:12px;padding:6px;border-radius:7px;cursor:pointer;text-overflow:ellipsis}
-.speech-voice-select:focus-visible{outline:2px solid #12886f;outline-offset:2px}
-.speech-voice-preview{min-width:30px;min-height:30px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid #cfdfdc;border-radius:8px;background:#f5fbf8;color:#136d65;cursor:pointer;font-size:13px}
-.speech-voice-preview:hover,.speech-voice-preview:focus-visible{background:#dff6ee;outline-offset:2px}
-.speech-voice-preview.speaking{background:#d2f4e8;border-color:#148b76}
-@media(max-width:560px){
- .speech-voice-label{display:none}
- .speech-voice-select{width:120px;max-width:135px;font-size:12px}
- .speech-voice-preview{min-width:32px;min-height:32px}
+.speech-accent-picker,.speech-voice-picker{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.speech-accent-icon{font-size:16px;line-height:1}
+.speech-accent-name,.speech-voice-label,.speech-speed-label{font-weight:750;white-space:nowrap;font-size:12px}
+.speech-accent-select,.speech-voice-select{
+ appearance:none;-webkit-appearance:none;box-sizing:border-box;
+ background-color:#fff;color:#365868;
+ border:1px solid #c9dddd;border-radius:10px;
+ font:inherit;font-size:12px;font-weight:750;line-height:1.3;
+ padding:8px 28px 8px 10px;cursor:pointer;
+ background-image:linear-gradient(45deg,transparent 50%,#4a7178 50%),
+                  linear-gradient(135deg,#4a7178 50%,transparent 50%);
+ background-position:calc(100% - 15px) center,calc(100% - 10px) center;
+ background-size:5px 5px;background-repeat:no-repeat;
+ text-overflow:ellipsis;
+}
+.speech-accent-select{width:94px}
+.speech-voice-select{width:clamp(130px,17vw,210px);max-width:210px;min-width:0}
+.speech-accent-select:focus-visible,.speech-voice-select:focus-visible,
+.speech-voice-preview:focus-visible,.speech-speed-range:focus-visible{
+ outline:3px solid #6bb9a5;outline-offset:2px
+}
+.speech-voice-preview{
+ display:inline-grid;place-items:center;flex-shrink:0;
+ height:35px;width:35px;min-height:35px;
+ border:1px solid #c9dddd;border-radius:10px;
+ background:#fff;color:#176b68;cursor:pointer;font-size:14px;font-weight:800;
+}
+.speech-voice-preview:hover,.speech-voice-preview.speaking{
+ color:#0b735c;border-color:#55a699;background:#e7f6f1
+}
+.speech-speed-range{
+ width:94px;height:32px;margin:0 2px;accent-color:#087c67;
+ cursor:pointer;touch-action:pan-y
+}
+.speech-speed-value{
+ min-width:43px;text-align:right;font-size:12px;font-weight:800;
+ font-variant-numeric:tabular-nums;white-space:nowrap
+}
+.speech-accent-note{
+ flex-basis:100%;font-size:11px;color:#95591d;
+ font-weight:500;line-height:1.4
+}
+.speech-accent-note[hidden]{display:none}
+@media(max-width:600px){
+ .speech-accent-control{width:100%;gap:6px;padding:6px 7px}
+ .speech-accent-name,.speech-voice-label{display:none}
+ .speech-accent-select{width:86px}
+ .speech-voice-picker{flex:1;min-width:100px}
+ .speech-voice-select{width:100%;max-width:none}
+ .speech-voice-preview{height:35px;width:35px}
+ .speech-speed-range{width:clamp(80px,24vw,104px)}
 }
