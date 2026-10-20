@@ -1,16 +1,16 @@
 # Word Quest — Grade 7 Semester 1
 
-**Version:** 1.5.0 · **6 units** · **109 missions** · **265 textbook vocabulary/expression entries**
+**Version:** 1.5.1 · **6 units** · **109 missions** · **265 textbook vocabulary/expression entries**
 
 Interactive English vocabulary and etymology game aligned with Shanghai 五四制 2024 Grade 7.
 
-## Architecture in v1.5.0
-- `site-shell.js` is the single source for the **header, navigation and footer** on the homepage and every unit. It generates both `data-view` and `data-val` to preserve the existing Unit 1 and Unit 2–6 event handlers.
-- `site.css` centralizes design tokens, brand/navigation buttons, shared mobile layout, footer, and version-badge styles. Page-specific puzzle styles remain in `unit1.css` and `quest.css`, with `speech.css` for speech-specific controls.
-- Unit 1 has been split from a monolithic HTML file into `unit1.html` (entry point), `unit1.js` (original gameplay/content) and `unit1.css` (game-specific styles). Units 2–6 continue using `content.js` and `quest.js`.
-- The existing progress keys `wordquest_g7u1_v1` and `wordquest_g7u{N}_semester_v1` are **not migrated or cleared**. Speech preferences retain their existing keys.
-- Shared version comes from `site-version.js`. Subsequent releases need a single version update instead of changing individual unit pages.
-- Tests: `tests/check_site.py`, `tests/test_layout.js`, `tests/test_speech.js`.
+## Unified game architecture in v1.5.1
+- All **six units now run the same `quest.js` engine** and share the same `quest.css` gameplay styles, `site-shell.js` header/footer, and `site.css` design system.
+- Unit 1's original **23 missions**, five chapters, textbook glossary, word histories, word-formation, and grammar notes are retained as data in `unit1-data.js`. Units 2–6 continue loading `content.js`.
+- The unified engine adapts Unit 1 content to the same story/question, building/choice, hints, word vault, history, and results UI as Units 2–6. Unit 1 keeps its five-chapter map and special learning notes.
+- **Saved progress is backward compatible.** Unit 1 still reads and writes `wordquest_g7u1_v1` (with `earned`, `score`, `maxUnlocked`, etc.). Units 2–6 keep `wordquest_g7uN_semester_v1`. Voice, accent and speech speed keys stay unchanged. Do not delete local browser data.
+- Unit 1's old independent `unit1.js` gameplay engine and `unit1.css` are retired. This makes future gameplay or styling updates single-file changes rather than dual-engine patches.
+- `site-version.js` is the central source for v1.5.1. Regression coverage now includes gameplay integration in `tests/test_engine.js`, shared layout, site integrity and speech controls.
 
 ## Features
 - English-first game, optional Chinese translations and progressive hints.
@@ -35,9 +35,10 @@ Check locally with:
 ```bash
 python3 tests/check_site.py
 node --check quest.js
-node --check unit1.js
+node --check unit1-data.js
 node --check site-shell.js
 node tests/test_layout.js
+node tests/test_engine.js
 node --check content.js
 node --check speech.js
 node --check site-version.js
