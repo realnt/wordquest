@@ -31,3 +31,17 @@
   .speech-speed-range{width:86px;min-height:32px}
   .speech-speed-label{font-size:11px}
 }
+
+/* v1.4.5 · Platform-aware voice picker and quick voice preview. */
+.speech-voice-picker{display:inline-flex;align-items:center;gap:5px;min-width:0}
+.speech-voice-label{font-size:12px;font-weight:700;white-space:nowrap}
+.speech-voice-select{width:clamp(120px,15vw,195px);max-width:195px;min-width:105px;border:1px solid #d2e2df;background:#fff;color:#214f5a;font-size:12px;padding:6px;border-radius:7px;cursor:pointer;text-overflow:ellipsis}
+.speech-voice-select:focus-visible{outline:2px solid #12886f;outline-offset:2px}
+.speech-voice-preview{min-width:30px;min-height:30px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid #cfdfdc;border-radius:8px;background:#f5fbf8;color:#136d65;cursor:pointer;font-size:13px}
+.speech-voice-preview:hover,.speech-voice-preview:focus-visible{background:#dff6ee;outline-offset:2px}
+.speech-voice-preview.speaking{background:#d2f4e8;border-color:#148b76}
+@media(max-width:560px){
+ .speech-voice-label{display:none}
+ .speech-voice-select{width:120px;max-width:135px;font-size:12px}
+ .speech-voice-preview{min-width:32px;min-height:32px}
+}
