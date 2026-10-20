@@ -74,7 +74,11 @@
     const ios=typeof navigator!=='undefined'&&/iPhone|iPad|iPod/.test(navigator.userAgent||'');
     if(ios){
       const preferred=locale==='en-GB'?'Daniel':'Samantha';
-      const voice=matches.find(v=>String(v.name||'').toLowerCase()===preferred.toLowerCase());
+      const voice=matches.find(v=>{
+        const name=String(v.name||'').trim().toLowerCase();
+        const target=preferred.toLowerCase();
+        return name===target||name.startsWith(target+' (')||name.startsWith(target+' -');
+      });
       if(voice)return voice;
     }
     return matches[0]||null;
