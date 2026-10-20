@@ -67,8 +67,9 @@
   }
   function matchingVoice(locale,voices){
     const matches=voices.filter(v=>String(v.lang||'').replace('_','-').toLowerCase()===locale.toLowerCase());
-    // Prefer a locally installed voice when possible; never deliberately select the wrong accent.
-    return matches.find(v=>v.localService)||matches[0]||null;
+    // The first matching voice is the default shown in the selector.
+    // A saved explicit voice selection takes precedence over this fallback.
+    return matches[0]||null;
   }
   function voiceToken(voice){
     return JSON.stringify([String(voice.name||''),String(voice.voiceURI||'')]);
@@ -94,6 +95,7 @@
     const unavailable=supported&&voices.length>0&&choices.length===0;
     const wanted=chosenVoices[accent];
     const selected=wanted?savedVoice(accent,voices):null;
+    const actual=selected||choices[0]||null;
     document.querySelectorAll('.speech-accent-control').forEach(control=>{
       const select=control.querySelector('.speech-accent-select');
       if(select&&select.value!==accent)select.value=accent;
@@ -106,23 +108,31 @@
       if(voiceSelect){
         // Some browsers (notably Safari) populate voices after initial page load.
         // Rebuild only when locale or available voice list changes.
-        const fingerprint=accent+'|'+JSON.stringify(choices.map(voiceToken));
+        const fingerprint=accent+'|'+(supported?voices.length:'unsupported')+'|'+
+          JSON.stringify(choices.map(voiceToken));
         if(voiceSelect.dataset.voiceList!==fingerprint){
-          const auto=document.createElement('option');
-          auto.value='';
-          auto.textContent='Automatic';
-          const options=[auto];
-          for(const voice of choices){
-            const option=document.createElement('option');
-            option.value=voiceToken(voice);
-            option.textContent=voice.name;
-            options.push(option);
+          const options=[];
+          if(choices.length===0){
+            const placeholder=document.createElement('option');
+            placeholder.value='';
+            placeholder.textContent=!supported?'Audio unavailable':
+              voices.length?'No '+LOCALES[accent]+' voices':'Loading voices…';
+            options.push(placeholder);
+          }else{
+            for(const voice of choices){
+              const option=document.createElement('option');
+              option.value=voiceToken(voice);
+              option.textContent=voice.name;
+              option.title=voice.name;
+              options.push(option);
+            }
           }
           voiceSelect.replaceChildren(...options);
           voiceSelect.dataset.voiceList=fingerprint;
         }
-        const value=selected?voiceToken(selected):'';
+        const value=actual?voiceToken(actual):'';
         if(voiceSelect.value!==value)voiceSelect.value=value;
+        // Keep an empty voice list focusable: iOS may load voices after the first tap.
         voiceSelect.disabled=!supported;
       }
       const note=control.querySelector('.speech-accent-note');
@@ -130,7 +140,7 @@
         const missingSelected=Boolean(wanted)&&voices.length>0&&!selected;
         const message=unavailable
           ?LOCALES[accent]+' voice not available; device may substitute.'
-          :missingSelected?'Saved voice unavailable; using automatic '+LOCALES[accent]+' voice.':'';
+          :missingSelected?'Saved voice unavailable; using the first '+LOCALES[accent]+' voice.':'';
         note.hidden=!message;
         if(note.textContent!==message)note.textContent=message;
       }
@@ -148,7 +158,7 @@
       '<option value="en-GB">🇬🇧 UK</option><option value="en-US">🇺🇸 US</option></select></label>'+
       '<label class="speech-voice-picker"><span class="speech-voice-label">Voice</span>'+
       '<select class="speech-voice-select" aria-label="English speaking voice">'+
-      '<option value="">Automatic</option></select></label>'+
+      '<option value="">Loading voices…</option></select></label>'+
       '<button type="button" class="speech-voice-preview" data-speech-preview'+
       ' title="Preview English voice" aria-label="Preview English voice">▶</button>'+
       '<label class="speech-speed-label" for="wordquest-speech-speed">Speed</label>'+
@@ -171,14 +181,13 @@
   }
   function changeVoice(token){
     const voices=availableVoices(accent,getVoices());
-    const voice=token?voices.find(v=>voiceToken(v)===token):null;
-    if(token&&!voice)return;
-    if(voice)chosenVoices[accent]={name:voice.name,uri:String(voice.voiceURI||'')};
-    else delete chosenVoices[accent];
+    const voice=voices.find(v=>voiceToken(v)===token);
+    if(!voice)return;
+    chosenVoices[accent]={name:voice.name,uri:String(voice.voiceURI||'')};
     stop();
     try{localStorage.setItem(VOICE_KEY,JSON.stringify(chosenVoices));}catch(_e){}
     refreshAvailability();
-    status(voice?'Voice set to '+voice.name+'.':'Automatic '+LOCALES[accent]+' voice selected.');
+    status('Voice set to '+voice.name+'.');
   }
   function changeSpeed(value){
     const requested=Number(value);
