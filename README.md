@@ -1,6 +1,6 @@
 # Word Quest — Grade 7 Semester 1
 
-**Version:** 1.5.1 · **6 units** · **109 missions** · **265 textbook vocabulary/expression entries**
+**Version:** 1.5.2 · **6 units** · **109 missions** · **265 textbook vocabulary/expression entries**
 
 Interactive English vocabulary and etymology game aligned with Shanghai 五四制 2024 Grade 7.
 
@@ -23,6 +23,12 @@ These three version-controlled Markdown documents are the **canonical project re
 - **Saved progress is backward compatible.** Unit 1 still reads and writes `wordquest_g7u1_v1` (with `earned`, `score`, `maxUnlocked`, etc.). Units 2–6 keep `wordquest_g7uN_semester_v1`. Voice, accent and speech speed keys stay unchanged. Do not delete local browser data.
 - Unit 1's old independent `unit1.js` gameplay engine and `unit1.css` are retired. This makes future gameplay or styling updates single-file changes rather than dual-engine patches.
 - `site-version.js` is the central source for v1.5.1. Regression coverage now includes gameplay integration in `tests/test_engine.js`, shared layout, site integrity and speech controls.
+
+## Reliability update in v1.5.2
+- **Replay works:** Completed missions can be answered again in an explicitly labeled **Practice mode**. Attempts, hints and reveals during practice are temporary and do **not** add XP, change the completion record, or accumulate mistakes.
+- **Existing progress is safe:** Original Unit 1 (`wordquest_g7u1_v1`) and Units 2–6 (`wordquest_g7uN_semester_v1`) storage keys and score formats are unchanged. On refresh, completed missions return to normal review mode.
+- **Browser regression coverage:** Playwright runs real desktop Chromium and mobile-sized WebKit interaction tests for all six units, replay, saved progress, navigation, voice settings and the version label. WebKit on Linux is **not** a substitute for testing actual iPhone Safari voices.
+- **Content checks:** All 109 missions are checked for required English/Chinese text, answer validity and reachable word-building solutions.
 
 ## Features
 - English-first game, optional Chinese translations and progressive hints.
@@ -50,11 +56,15 @@ node --check quest.js
 node --check unit1-data.js
 node --check site-shell.js
 node tests/test_layout.js
+node tests/check_content.js
 node tests/test_engine.js
 node --check content.js
 node --check speech.js
 node --check site-version.js
 node tests/test_speech.js
+npm install --no-audit --no-fund --package-lock=false
+npx playwright install chromium webkit
+npm run test:browser
 ```
 
 Progress is stored separately by browser and website origin using localStorage. No export/import or cloud synchronization is planned for v1.5.

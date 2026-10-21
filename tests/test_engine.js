@@ -130,4 +130,66 @@ for(let unit=3;unit<=6;unit++){
  assert.match(g.app.innerHTML,new RegExp('UNIT '+unit));
  assert.match(g.app.innerHTML,/data-action="choose"|data-action="part"/);
 }
-console.log('Unified game engine integration tests passed: 6 units, legacy progress, scores, stories.');
+
+/* Replay is a disposable practice attempt, never a new XP transaction. */
+{
+ const g=game(1,{});
+ g.click('part',{n:'2'});g.click('part',{n:'0'});g.click('check');
+ const storedBefore=g.data.get(KEY1);
+ assert.match(g.app.innerHTML,/data-action="replay"/);
+ g.click('replay');
+ assert.match(g.app.innerHTML,/Practice mode/);
+ assert.match(g.app.innerHTML,/data-action="part"/,'Completed Unit 1 build puzzle is interactive again');
+ assert.equal(g.data.get(KEY1),storedBefore,'Entering practice never alters saved Unit 1 data');
+ g.click('part',{n:'2'});g.click('part',{n:'0'});g.click('check');
+ assert.match(g.app.innerHTML,/Practice complete/);
+ assert.equal(g.data.get(KEY1),storedBefore,'Perfect practice cannot duplicate XP');
+ g.click('replay');
+ for(let n=0;n<3;n++){g.click('part',{n:'0'});g.click('check');}
+ assert.match(g.app.innerHTML,/Practice complete/,'Auto-unlock after three mistakes works in practice');
+ assert.equal(g.data.get(KEY1),storedBefore,'Practice misses and auto-unlocks must not change XP or misses');
+ const refresh=game(1,{[KEY1]:storedBefore});
+ assert.match(refresh.app.innerHTML,/data-action="replay"/,'Saved completion survives refresh');
+ refresh.click('replay');
+ assert.match(refresh.app.innerHTML,/data-action="part"/);
+}
+{
+ const g=game(2,{});
+ g.click('choose',{n:'0'});
+ const saved=g.data.get(KEY2);
+ assert.equal(g.readKey(KEY2).points,100);
+ g.click('replay');
+ assert.match(g.app.innerHTML,/Practice mode/);
+ assert.match(g.app.innerHTML,/data-action="choose"/,'Completed choice puzzle can be answered again');
+ assert.equal(g.data.get(KEY2),saved);
+ g.click('choose',{n:'1'}); // wrong in practice
+ assert.match(g.app.innerHTML,/Not quite/);
+ assert.equal(g.data.get(KEY2),saved,'Practice mistakes are not persisted');
+ g.click('choose',{n:'0'}); // correct
+ assert.match(g.app.innerHTML,/Practice complete/);
+ assert.equal(g.data.get(KEY2),saved,'Correct replay cannot duplicate XP');
+ g.click('replay');
+ for(let i=0;i<3;i++)g.click('choose',{n:'1'});
+ assert.match(g.app.innerHTML,/Reveal solution/);
+ g.click('reveal');
+ assert.match(g.app.innerHTML,/Practice complete/);
+ assert.equal(g.data.get(KEY2),saved,'Reveal during replay cannot reset or change score');
+ g.click('view',{view:'map'});
+ g.click('jump',{n:'0'});
+ assert.match(g.app.innerHTML,/data-action="replay"/,'Normal review still shows past completion');
+ assert.doesNotMatch(g.app.innerHTML,/Practice mode/,'Navigating away exits practice mode');
+}
+{
+ // A completed mission reopened from a saved Unit 5 game can be retried.
+ const key='wordquest_g7u5_semester_v1';
+ const old={current:0,unlocked:1,completed:{0:80},mistakes:{0:2},points:80,zh:false,tab:'play'};
+ const g=game(5,{[key]:JSON.stringify(old)});
+ assert.match(g.app.innerHTML,/data-action="replay"/);
+ g.click('replay');
+ assert.match(g.app.innerHTML,/data-action="part"/,'Completed Unit 5 word build can replay');
+ g.click('part',{n:'1'});g.click('part',{n:'0'});g.click('check'); // IM + POLITE
+ assert.match(g.app.innerHTML,/Practice complete/);
+ assert.deepEqual(JSON.parse(g.data.get(key)),old,'Legacy saved Unit 5 progress unchanged');
+}
+
+console.log('Unified engine tests passed: six units, replay, XP safety, saved progress, content.');

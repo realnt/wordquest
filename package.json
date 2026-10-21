@@ -1,0 +1,13 @@
+{
+  "name": "wordquest",
+  "private": true,
+  "version": "1.5.2",
+  "description": "Word Quest browser regression tests",
+  "scripts": {
+    "test:browser": "playwright test",
+    "test:unit": "node tests/test_engine.js && node tests/test_layout.js && node tests/test_speech.js && node tests/check_content.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
+  }
+}

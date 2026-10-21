@@ -52,7 +52,7 @@ try{
 }catch(e){}
 state.unlocked=Math.max(0,Math.min(puzzles.length,state.unlocked||0));
 state.current=Math.max(0,Math.min(puzzles.length-1,state.current||0));
-let rt={hint:0,tries:0,selected:[],wrong:-1,answer:false,revealed:{},query:'',mode:'all'};
+let rt={hint:0,tries:0,selected:[],wrong:-1,answer:false,practice:false,revealed:{},query:'',mode:'all'};
 const $=document.getElementById('root');
 function store(){
  try{
@@ -85,13 +85,13 @@ function side(){let start=Math.max(0,Math.min(puzzles.length-8,state.current-3))
 }).join('')}</div>`:''}</section><section class="panel sidepad"><h3>Learning controls · 学习设置</h3><button class="btn ${state.zh?'':'ghost'} small" data-action="zh">${state.zh?'🇨🇳 中文辅助 ON':'🇬🇧 中文辅助 OFF'}</button><p class="sidefoot">English first. Chinese is available for the story, question, hints and explanation. Answers stay in English.</p><div class="divider"></div><details class="guide"><summary>Word Origin Language Guide</summary><p><b>can be traced back to</b><span>可追溯到 · historical evidence</span></p><p><b>entered English through</b><span>经由……传入英语 · borrowing route</span></p><p><b>formed from</b><span>由……构成 · word formation</span></p><p><b>shares a common origin with</b><span>与……同源 · related etymology</span></p></details></section></aside>`}
 function choices(p){return `<div class="options" role="group" aria-label="Answer choices">${p.options.map((o,i)=>`<button class="option ${rt.answer&&i===p.answer?'correct':rt.wrong===i?'wrong':''}" data-action="choose" data-n="${i}" ${rt.answer||rt.tries>=3?'disabled':''}><span class="choice-letter">${'ABCDEF'[i]}</span><span>${esc(o)}</span></button>`).join('')}</div>`}
 function build(p){return `<div><div class="board" aria-label="Selected word parts">${rt.selected.length?rt.selected.map((i,j)=>`<button class="answer-token" data-action="remove" data-n="${j}" title="Remove this part">${esc(p.parts[i])} ×</button>`).join(''):'<span class="empty">Tap word parts in order / 按顺序点击词块</span>'}</div><div class="tokens">${p.parts.map((part,i)=>`<button class="token ${rt.selected.includes(i)?'selected':''}" data-action="part" data-n="${i}" ${rt.answer||rt.tries>=3||rt.selected.includes(i)?'disabled':''}>${esc(part)}</button>`).join('')}</div><div class="actions"><button class="btn" data-action="check" ${rt.answer||rt.tries>=3?'disabled':''}>Check the word</button><button class="btn ghost" data-action="clear" ${rt.answer?'disabled':''}>Clear</button></div></div>`}
-function solved(p){return `<div class="feedback" role="status"><h3>${rt.tries>=3?'🔍 Solution unlocked':'✓ Discovery unlocked!'}</h3><p class="explanation"><strong>${esc(p.word)}</strong> · ${rt.tries>=3?'Learn from this example.':'Nice reasoning.'}</p><div class="label" style="margin-top:15px">Explanation · 答题解释</div>${wordText(p.explain,p.explainZh,'exp')}<div class="storynote"><div class="note-title">✧ ${esc(p.tag.toUpperCase())} · HOW IT WORKS</div>${wordText(p.connection,p.connectionZh,'connection')}</div>
+function solved(p){return `<div class="feedback" role="status"><h3>${rt.practice?'✓ Practice complete':rt.tries>=3?'🔍 Solution unlocked':'✓ Discovery unlocked!'}</h3>${rt.practice?'<p class="practice-note">Practice only — original XP and mission progress are unchanged.</p>':''}<p class="explanation"><strong>${esc(p.word)}</strong> · ${rt.tries>=3?'Learn from this example.':'Nice reasoning.'}</p><div class="label" style="margin-top:15px">Explanation · 答题解释</div>${wordText(p.explain,p.explainZh,'exp')}<div class="storynote"><div class="note-title">✧ ${esc(p.tag.toUpperCase())} · HOW IT WORKS</div>${wordText(p.connection,p.connectionZh,'connection')}</div>
  ${first&&p.formation?`<div class="storynote"><div class="note-title">◈ Word Formation</div>${wordText(p.formation,p.formationZh,'formation')}</div>`:''}
  ${first&&p.grammar?`<div class="storynote"><div class="note-title">▣ Grammar in Context</div>${wordText(p.grammar,p.grammarZh,'grammar')}</div>`:''}
  ${first&&p.history?`<div class="storynote word-history"><div class="note-title">✧ Word Discovery · ${esc(p.tag)}</div>
  ${wordText(p.history,p.historyZh,'history')}
  ${p.url&&/^https:\/\/www\.etymonline\.com\//.test(p.url)?`<p><a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">Check on Etymonline ↗</a></p>`:''}</div>`:''}<div class="actions"><button class="btn" data-action="next">${state.current===puzzles.length-1?'See my results':'Next mission →'}</button><button class="btn ghost" data-action="replay">Replay</button></div></div>`}
-function play(){const p=puzzles[state.current],n=state.current;const passed=state.completed[n]!==undefined;const answerVisible=rt.answer||passed;return `<section class="panel pad"><div class="stage-title"><div class="eyebrow">MISSION ${n+1} / ${puzzles.length}</div><span class="pill">${first?esc((p.chapter?'CHAPTER '+p.chapter+' · ':'')+info.theme):esc(info.theme)}</span></div><h2 class="mission-title">${esc(p.title)}</h2>${state.zh?`<div class="cn-title">${esc(p.titleZh)}</div>`:''}<div class="story">${first&&p.icon?`<span class="mission-emoji" aria-hidden="true">${p.icon}</span>`:''}<div class="label">YOUR MISSION ${state.zh?'· 任务背景':''}</div>${wordText(p.scene,p.sceneZh,'scene')}</div><div style="margin-top:19px"><div class="label">YOUR QUESTION ${state.zh?'· 任务问题':''}</div><div class="question">${wordText(p.question,p.questionZh,'question')}</div></div>${!answerVisible?(p.mode==='build'?build(p):choices(p)):''}${rt.tries>0&&!answerVisible?`<div class="warn" role="status">${rt.tries>=3?'Three tries used. Reveal the answer to learn from it.':'Not quite. Try again or use a clue.'}${state.zh?'<div class="cn" style="border:0;padding-left:0">答案还不对。可以使用提示；尝试三次后可查看正确解法。</div>':''}</div>`:''}${!answerVisible?`<div class="actions"><button class="btn alt" data-action="hint" ${rt.hint>=2?'disabled':''}>💡 ${rt.hint===0?'Give me a clue':rt.hint===1?'Another clue':'Clues unlocked'}</button>${rt.tries>=3?'<button class="btn" data-action="reveal">Reveal solution</button>':''}</div>${rt.hint?`<div class="hints"><div class="label">CLUE ${rt.hint}</div>${wordText(p.hints[rt.hint-1],p.hintsZh[rt.hint-1],'hint')}</div>`:''}`:solved(p)}<div class="divider"></div><div class="actions"><button class="btn ghost small" data-action="view" data-view="map">🗺️ All missions</button><button class="btn ghost small" data-action="zh">${state.zh?'中文辅助 ON':'中文辅助 OFF'}</button></div></section>`}
+function play(){const p=puzzles[state.current],n=state.current;const passed=state.completed[n]!==undefined;const answerVisible=rt.answer||(passed&&!rt.practice);return `<section class="panel pad"><div class="stage-title"><div class="eyebrow">MISSION ${n+1} / ${puzzles.length}</div><span class="pill">${first?esc((p.chapter?'CHAPTER '+p.chapter+' · ':'')+info.theme):esc(info.theme)}</span></div><h2 class="mission-title">${esc(p.title)}</h2>${state.zh?`<div class="cn-title">${esc(p.titleZh)}</div>`:''}${rt.practice?'<div class="practice-note" role="status">Practice mode · You can try this mission again. Your existing XP and completion are safe.</div>':''}<div class="story">${first&&p.icon?`<span class="mission-emoji" aria-hidden="true">${p.icon}</span>`:''}<div class="label">YOUR MISSION ${state.zh?'· 任务背景':''}</div>${wordText(p.scene,p.sceneZh,'scene')}</div><div style="margin-top:19px"><div class="label">YOUR QUESTION ${state.zh?'· 任务问题':''}</div><div class="question">${wordText(p.question,p.questionZh,'question')}</div></div>${!answerVisible?(p.mode==='build'?build(p):choices(p)):''}${rt.tries>0&&!answerVisible?`<div class="warn" role="status">${rt.tries>=3?'Three tries used. Reveal the answer to learn from it.':'Not quite. Try again or use a clue.'}${state.zh?'<div class="cn" style="border:0;padding-left:0">答案还不对。可以使用提示；尝试三次后可查看正确解法。</div>':''}</div>`:''}${!answerVisible?`<div class="actions"><button class="btn alt" data-action="hint" ${rt.hint>=2?'disabled':''}>💡 ${rt.hint===0?'Give me a clue':rt.hint===1?'Another clue':'Clues unlocked'}</button>${rt.tries>=3?'<button class="btn" data-action="reveal">Reveal solution</button>':''}</div>${rt.hint?`<div class="hints"><div class="label">CLUE ${rt.hint}</div>${wordText(p.hints[rt.hint-1],p.hintsZh[rt.hint-1],'hint')}</div>`:''}`:solved(p)}<div class="divider"></div><div class="actions"><button class="btn ghost small" data-action="view" data-view="map">🗺️ All missions</button><button class="btn ghost small" data-action="zh">${state.zh?'中文辅助 ON':'中文辅助 OFF'}</button></div></section>`}
 function map(){
   const tiles=items=>`<div class="mapgrid" style="margin-top:16px">${items.map(([p,i])=>`<button class="maptile ${state.current===i?'current':''}" data-action="jump" data-n="${i}" ${i>state.unlocked?'disabled':''}><span class="pill">${state.completed[i]!==undefined?'✓ Completed':i>state.unlocked?'🔒 Locked':'▶ Available'} · ${i+1}</span><b>${p.icon?p.icon+' ':''}${esc(p.title)}</b><small>${esc(p.word)}</small></button>`).join('')}</div>`;
   const items=puzzles.map((p,i)=>[p,i]);
@@ -105,26 +105,31 @@ function draw(){document.title='Word Quest · Unit '+unit+' · '+info.title;$.in
 }
 function mark(revealed=false){
  const n=state.current;
- if(state.completed[n]===undefined){
+ if(!rt.practice&&state.completed[n]===undefined){
    const deduction=first?Math.max(0,rt.tries-1)*25:rt.tries*25;
    const points=revealed?0:Math.max(20,100-rt.hint*20-deduction);
    state.completed[n]=points;
    state.points+=points;
    state.unlocked=Math.max(state.unlocked,n+1);
  }
- rt.answer=true;store();draw();
+ rt.answer=true;
+ if(!rt.practice)store();
+ draw();
 }
 function wrong(){
  rt.tries++;
- state.mistakes[state.current]=(state.mistakes[state.current]||0)+1;
+ if(!rt.practice)state.mistakes[state.current]=(state.mistakes[state.current]||0)+1;
  rt.selected=[];
  if(first&&rt.tries>=3){rt.hint=2;mark();}
- else{store();draw();}
+ else{if(!rt.practice)store();draw();}
 }
-function go(n){if(n>state.unlocked||n<0||n>=puzzles.length)return;state.current=n;state.tab='play';rt={...rt,hint:0,tries:0,selected:[],wrong:-1,answer:false,revealed:{}};store();draw();window.scrollTo({top:0,behavior:'smooth'})}
+function go(n){if(n>state.unlocked||n<0||n>=puzzles.length)return;state.current=n;state.tab='play';rt={...rt,hint:0,tries:0,selected:[],wrong:-1,answer:false,practice:false,revealed:{}};store();draw();window.scrollTo({top:0,behavior:'smooth'})}
 $.addEventListener('click',ev=>{const b=ev.target.closest('[data-action]');if(!b)return;const a=b.dataset.action,p=puzzles[state.current],n=Number(b.dataset.n);switch(a){case'view':state.tab=b.dataset.view;store();draw();break;case'jump':go(n);break;case'zh':state.zh=!state.zh;store();draw();break;case'translate':rt.revealed[b.dataset.id]=!rt.revealed[b.dataset.id];draw();break;case'hint':rt.hint=Math.min(2,rt.hint+1);draw();break;case'choose':if(n===p.answer)mark();else{rt.wrong=n;wrong();}break;case'part':if(!rt.selected.includes(n))rt.selected.push(n);draw();break;case'remove':rt.selected.splice(n,1);draw();break;case'clear':rt.selected=[];draw();break;case'check':{if(!rt.selected.length)break;const parts=rt.selected.map(i=>p.parts[i]);
  const valid=p.answerParts?JSON.stringify(parts)===JSON.stringify(p.answerParts):
  parts.join('').replace(/\s+/g,'').toLowerCase()===p.word.replace(/\s+/g,'').toLowerCase();
- if(valid)mark();else wrong();break;}case'reveal':mark(true);break;case'next':if(state.current>=puzzles.length-1){state.tab='results';store();draw();window.scrollTo({top:0,behavior:'smooth'})}else go(state.current+1);break;case'replay':go(state.current);break;case'restart':if(window.confirm('Clear progress for Unit '+unit+'? / 确定重置本单元进度？')){state=defaults();if(first)originalFirstState={};rt={hint:0,tries:0,selected:[],wrong:-1,answer:false,revealed:{},query:'',mode:'all'};store();draw();}break;}});
+ if(valid)mark();else wrong();break;}case'reveal':mark(true);break;case'next':if(state.current>=puzzles.length-1){state.tab='results';store();draw();window.scrollTo({top:0,behavior:'smooth'})}else go(state.current+1);break;case'replay':if(state.completed[state.current]!==undefined){
+ rt={...rt,hint:0,tries:0,selected:[],wrong:-1,answer:false,practice:true,revealed:{}};
+ draw();
+}break;case'restart':if(window.confirm('Clear progress for Unit '+unit+'? / 确定重置本单元进度？')){state=defaults();if(first)originalFirstState={};rt={hint:0,tries:0,selected:[],wrong:-1,answer:false,practice:false,revealed:{},query:'',mode:'all'};store();draw();}break;}});
 draw();
 })();

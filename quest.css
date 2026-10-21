@@ -41,3 +41,11 @@
 .word-history a:focus-visible{outline:3px solid #6bb9a5;outline-offset:2px;border-radius:3px}
 .chapter-heading{font-size:16px;margin:22px 0 12px;color:#234c59}
 @media(max-width:560px){.mission-emoji{font-size:29px;margin-left:7px}.chapter-heading{font-size:14px;margin-top:16px}}
+
+/* v1.5.2: clearly identify practice without changing the original XP. */
+.practice-note{
+  margin:12px 0;padding:10px 13px;
+  border-left:3px solid #138a76;border-radius:8px;
+  background:#eaf8f2;color:#225b51;
+  font-size:13px;line-height:1.55;font-weight:650;
+}
