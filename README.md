@@ -4,6 +4,18 @@
 
 Interactive English vocabulary and etymology game aligned with Shanghai 五四制 2024 Grade 7.
 
+## Project documentation / 项目文档
+
+These three version-controlled Markdown documents are the **canonical project references**. They were consolidated from the earlier v1.4 Blueprint, Master Prompt, change-request template, and the bilingual Word development guides.
+
+| Document | Purpose |
+|---|---|
+| [Master Blueprint](docs/Master_Blueprint.md) | **What and why:** curriculum, pedagogy, accepted product decisions, compatibility, release policy, plus reusable AI handoff and change-request templates |
+| [Development Guide — English](docs/Development_Guide_EN.md) | **How:** project history, source layout, gameplay engine, speech, testing, local setup, CI and deployment |
+| [开发与维护指南 — 中文](docs/Development_Guide_ZH.md) | 与英文技术指南对应的中文版，适合交接、分享与后续维护 |
+
+**Version note:** These guides describe merged `main` **v1.5.1** and separately identify [PR #9 / proposed v1.5.2](https://github.com/realnt/wordquest/pull/9) as **not yet merged** at the documentation baseline. Update both language guides and the Blueprint when a new release merges. The existing DOCX editions are shareable reading copies; GitHub Markdown is the maintainable source of truth.
+
 ## Unified game architecture in v1.5.1
 - All **six units now run the same `quest.js` engine** and share the same `quest.css` gameplay styles, `site-shell.js` header/footer, and `site.css` design system.
 - Unit 1's original **23 missions**, five chapters, textbook glossary, word histories, word-formation, and grammar notes are retained as data in `unit1-data.js`. Units 2–6 continue loading `content.js`.
