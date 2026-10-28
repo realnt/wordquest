@@ -2,7 +2,7 @@
 
 **From learning idea to a deployable and maintainable game**  
 **Repository:** https://github.com/realnt/wordquest  
-**Baseline:** `main` at **v1.5.3** ([PR #20](https://github.com/realnt/wordquest/pull/20)), building on v1.5.2 (merged 21 October 2026 via [PR #9](https://github.com/realnt/wordquest/pull/9))  
+**Baseline:** `main` at **v1.5.4** ([PR #21](https://github.com/realnt/wordquest/pull/21)), after v1.5.3 ([PR #20](https://github.com/realnt/wordquest/pull/20)) and v1.5.2 (merged 21 October 2026 via [PR #9](https://github.com/realnt/wordquest/pull/9))  
 **Production site:** https://wordquest.orbitlab.workers.dev/  
 **GitHub Pages:** https://realnt.github.io/wordquest/  
 **Companion:** [Master Blueprint](Master_Blueprint.md) · [中文版开发指南](Development_Guide_ZH.md) · [AI collaboration workflow](AI_COLLABORATION.md)
@@ -41,6 +41,7 @@ We created one playable **Unit 1 prototype**, revised the bilingual teaching exp
 | **v1.5.1** | Unified gameplay for all units in `quest.js` / `quest.css`; Unit 1 data adapted without resetting stored progress |
 | **v1.5.2** | [PR #9](https://github.com/realnt/wordquest/pull/9) (merged 21 October 2026): functioning practice/replay mode, mission content validation, Playwright browser tests |
 | **v1.5.3** | [PR #20](https://github.com/realnt/wordquest/pull/20): stable shuffled options, no map spoilers, fair retries, reveal = 0 XP in all units, `lang` metadata |
+| **v1.5.4** | [PR #21](https://github.com/realnt/wordquest/pull/21): stronger wrong options in 22 missions, 7 titles renamed, answer-integrity content checks |
 
 Instead of replacing the site with a new app framework, we refactored the existing working project in small feature branches. Unit 1 was originally self-contained; in v1.5.1 its game logic was merged into the shared engine, keeping the **original mission data and storage contract**.
 
@@ -186,7 +187,7 @@ On Windows, `py -m http.server 8080` may work if `python3` does not.
 
 Visit **http://localhost:8080/**. Do not rely solely on opening the HTML files with `file://` paths; an HTTP server better reproduces production loading.
 
-### Tests on current `main` (v1.5.3)
+### Tests on current `main` (v1.5.4)
 
 Run the static, unit and content checks:
 

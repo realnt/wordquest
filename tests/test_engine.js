@@ -95,7 +95,7 @@ const KEY1='wordquest_g7u1_v1',KEY2='wordquest_g7u2_semester_v1';
  const existing={current:3,maxUnlocked:5,earned:{0:90,1:80,2:70},misses:{2:1},
   score:240,view:'play',zh:true,level:'standard'};
  const g=game(1,{[KEY1]:JSON.stringify(existing)});
- assert.match(g.app.innerHTML,/A Curious Mind/);
+ assert.match(g.app.innerHTML,/The Strange New Machine/,'Legacy save restores Unit 1 mission 4 (retitled in v1.5.4)');
  assert.match(g.app.innerHTML,/curious/);
  assert.match(g.app.innerHTML,/cn-title/);
  g.click('view',{view:'map'});

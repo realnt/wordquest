@@ -51,5 +51,5 @@ assert.match(engine,/window\.WordQuestUnit1/);
 assert.match(engine,/window\.WordQuestShell\.footer\(\)/);
 assert.match(engine,/wordquest_g7u1_v1/,'Preserve Unit 1 progress key');
 assert.match(engine,/wordquest_g7u.*semester_v1/,'Preserve others');
-assert.match(read('site-version.js'),/const VERSION='1\.5\.3'/);
+assert.match(read('site-version.js'),/const VERSION='1\.5\.4'/);
 console.log('Shared layout tests passed (home + 6 units + actions + styles + progress keys).');

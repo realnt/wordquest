@@ -1,6 +1,6 @@
 # Word Quest — Grade 7 Semester 1
 
-**Version:** 1.5.3 · **6 units** · **109 missions** · **265 textbook vocabulary/expression entries**
+**Version:** 1.5.4 · **6 units** · **109 missions** · **265 textbook vocabulary/expression entries**
 
 Interactive English vocabulary and etymology game aligned with Shanghai 五四制 2024 Grade 7.
 
@@ -15,7 +15,7 @@ These three version-controlled Markdown documents are the **canonical project re
 | [开发与维护指南 — 中文](docs/Development_Guide_ZH.md) | 与英文技术指南对应的中文版，适合交接、分享与后续维护 |
 | [ChatGPT × Claude collaboration](docs/AI_COLLABORATION.md) | How ChatGPT and Claude share work: issues, one writer per branch, independent review, disagreements and release checks |
 
-**Version note:** `main` contains **v1.5.3** ([PR #20](https://github.com/realnt/wordquest/pull/20), [Issue #15](https://github.com/realnt/wordquest/issues/15)), which builds on v1.5.2 ([PR #9](https://github.com/realnt/wordquest/pull/9), merged 21 October 2026). The Blueprint and both development guides describe this baseline. GitHub Markdown is the maintainable source of truth.
+**Version note:** `main` contains **v1.5.4** ([PR #21](https://github.com/realnt/wordquest/pull/21), [Issue #16](https://github.com/realnt/wordquest/issues/16)), following v1.5.3 ([PR #20](https://github.com/realnt/wordquest/pull/20)) and v1.5.2 ([PR #9](https://github.com/realnt/wordquest/pull/9), merged 21 October 2026). The Blueprint and both development guides describe this baseline. GitHub Markdown is the maintainable source of truth.
 
 ## Unified game architecture in v1.5.1
 - All **six units now run the same `quest.js` engine** and share the same `quest.css` gameplay styles, `site-shell.js` header/footer, and `site.css` design system.
@@ -38,6 +38,11 @@ These three version-controlled Markdown documents are the **canonical project re
 - **Same rule in every unit:** after three wrong word-building attempts the student taps **Reveal solution**, which earns **0 XP** with a friendly note to try again with Replay. Unit 1 no longer awards 20 XP automatically. Saved XP is not recalculated.
 - Unit 2 clue and question fixes; pages are marked as English, with Chinese text tagged `zh-CN`.
 
+## Better answer choices in v1.5.4
+- **22 multiple-choice missions** now have wrong options of the same word type as the answer that are believable but contradicted by the scene, so students cannot rule them out without understanding the word. Many are words from the same unit, so the options also revise vocabulary.
+- **7 mission titles** that contained the answer (e.g. “A Proud Moment” for *proud*) were renamed in English and Chinese.
+- New content checks: every option list is unique, the answer index points to the target word, and no title reveals its answer.
+
 ## Features
 - English-first game, optional Chinese translations and progressive hints.
 - Native speech synthesis for **Word Vault words and English mission passages**; small audio controls, no external API.
@@ -46,7 +51,7 @@ These three version-controlled Markdown documents are the **canonical project re
 - **Specific voice picker:** The Voice menu lists only the `en-GB` or `en-US` voices reported by `speechSynthesis.getVoices()` on the current device (for example Microsoft Hazel / Susan or Google UK English Female / Male). The first available voice for the selected accent is chosen by default; there is no redundant `Automatic` entry. Students can use the ▶ preview before choosing; UK and US voice preferences are saved independently in `wordquest_speech_voice_v1`. If a saved voice disappears, playback falls back to the first available voice for the current accent and shows a note. Selecting different voice objects does not guarantee an audible difference if the operating system maps them to similar or shared synthesizers. iPhone and PC may expose completely different voice lists; updates to voices are detected when available.
 - **Compact settings:** A single teal **🔊 UK/US · Voice** button replaces the always-visible controls. Tap to expand accent, voice, preview and speed; **✓ Done** collapses them. Preferences save as they change (also when closing without Done). The controls reappear only when requested, including after page refresh or changing missions.
 - **iOS voice preference:** When there is no saved manual choice and both are available, prefer Daniel for UK and Samantha for US based on device testing. Other voices remain selectable; some installed voices may be unreliable or sound unnatural in iOS Safari.
-- **Visible version:** The homepage and all six units show the version from `site-version.js` (currently **v1.5.3**) beside the Word Quest name. Future releases update `site-version.js` once.
+- **Visible version:** The homepage and all six units show the version from `site-version.js` (currently **v1.5.4**) beside the Word Quest name. Future releases update `site-version.js` once.
 - Mobile-first layout; the existing XP and saved-progress keys are preserved.
 - Short, visible word-history explanations; no additional Explore More click.
 

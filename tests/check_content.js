@@ -74,3 +74,34 @@ console.log('Content checks passed:',checked,'missions,',builds,'word builds,',c
     if(String(m[field]).includes('准备'))throw new Error('Unit 2 mission 10 '+field+' reveals the answer (准备)');
   console.log('Spoiler check passed: Unit 2 mission 10 Chinese text does not reveal the answer.');
 }
+
+/* v1.5.4 (#16): answer integrity and no spoilers in mission titles, across all six units. */
+{
+  const vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
+  const ctx={window:{}};vm.createContext(ctx);
+  for(const f of ['content.js','unit1-data.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..',f),'utf8'),ctx);
+  const D=ctx.window.WORDQUEST_CONTENT,U=ctx.window.WordQuestUnit1,all=[];
+  U.missions.forEach((m,i)=>all.push({tag:'U1 M'+(i+1),word:m.word,title:m.title,titleZh:U.missionTranslations[i].titleZh,options:m.options,answer:m.answer}));
+  for(let u=2;u<=6;u++)D.missions[u].forEach((m,i)=>all.push({...m,tag:'U'+u+' M'+(i+1)}));
+  // Missions whose correct option legitimately differs from the target word (inflection, or the question asks for a meaning).
+  const optionExceptions=new Set(['U4 M15','U6 M6']);
+  // U6 M6 asks what BANK means, so naming the word in the title is intended.
+  const titleExceptions=new Set(['U6 M6']);
+  const norm=s=>String(s).toLowerCase().replace(/^(a|an|the) /,'');
+  let checked=0;
+  for(const m of all){
+    if(m.options){
+      if(new Set(m.options.map(norm)).size!==m.options.length)throw new Error(m.tag+': options must be unique');
+      if(!Number.isInteger(m.answer)||m.answer<0||m.answer>=m.options.length)throw new Error(m.tag+': answer index out of range');
+      if(!m.word.includes('/')&&!optionExceptions.has(m.tag)&&!norm(m.options[m.answer]).includes(norm(m.word)))
+        throw new Error(m.tag+': answer index points to "'+m.options[m.answer]+'", not the target word "'+m.word+'"');
+      checked++;
+    }
+    if(!titleExceptions.has(m.tag)){
+      const parts=m.word.toLowerCase().split(/[ \/]+/).filter(p=>p.length>3);
+      for(const t of [m.title,m.titleZh])
+        if(t&&parts.some(p=>t.toLowerCase().includes(p)))throw new Error(m.tag+': title "'+t+'" gives away the answer');
+    }
+  }
+  console.log('Answer-integrity checks passed: '+checked+' missions with options point to their target word; no title reveals its answer.');
+}
