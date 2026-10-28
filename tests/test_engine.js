@@ -111,10 +111,12 @@ const KEY1='wordquest_g7u1_v1',KEY2='wordquest_g7u2_semester_v1';
   earned:{0:100,1:100,2:100},misses:{},score:300,view:'play',zh:false})});
  g.click('choose',{n:'1'});
  g.click('choose',{n:'1'});
- g.click('choose',{n:'1'});
- assert.equal(g.readKey(KEY1).earned['3'],20,'Unit 1 unlocks automatically after three wrong tries');
+ assert.equal(g.readKey(KEY1).misses['3'],1,'Repeat wrong choice is ignored');
+ g.click('choose',{n:'2'});
+ assert.equal(g.readKey(KEY1).misses['3'],2,'Distinct wrong choices count once');
+ g.click('choose',{n:'0'});
+ assert.equal(g.readKey(KEY1).earned['3'],50,'Two misses cost 50 XP');
  assert.equal(g.readKey(KEY1).maxUnlocked,4);
- assert.equal(g.readKey(KEY1).misses['3'],3);
 }
 {
  const g=game(2,{});
@@ -146,7 +148,9 @@ for(let unit=3;unit<=6;unit++){
  assert.equal(g.data.get(KEY1),storedBefore,'Perfect practice cannot duplicate XP');
  g.click('replay');
  for(let n=0;n<3;n++){g.click('part',{n:'0'});g.click('check');}
- assert.match(g.app.innerHTML,/Practice complete/,'Auto-unlock after three mistakes works in practice');
+ assert.match(g.app.innerHTML,/Reveal solution/,'Three wrong builds require explicit reveal');
+ g.click('reveal');
+ assert.match(g.app.innerHTML,/Practice complete/,'Revealed practice shows explanation');
  assert.equal(g.data.get(KEY1),storedBefore,'Practice misses and auto-unlocks must not change XP or misses');
  const refresh=game(1,{[KEY1]:storedBefore});
  assert.match(refresh.app.innerHTML,/data-action="replay"/,'Saved completion survives refresh');
@@ -169,11 +173,13 @@ for(let unit=3;unit<=6;unit++){
  assert.match(g.app.innerHTML,/Practice complete/);
  assert.equal(g.data.get(KEY2),saved,'Correct replay cannot duplicate XP');
  g.click('replay');
- for(let i=0;i<3;i++)g.click('choose',{n:'1'});
- assert.match(g.app.innerHTML,/Reveal solution/);
- g.click('reveal');
+ g.click('choose',{n:'1'});
+ g.click('choose',{n:'1'});
+ g.click('choose',{n:'2'});
+ assert.match(g.app.innerHTML,/data-n="1" disabled/,'Wrong option remains disabled');
+ g.click('choose',{n:'0'});
  assert.match(g.app.innerHTML,/Practice complete/);
- assert.equal(g.data.get(KEY2),saved,'Reveal during replay cannot reset or change score');
+ assert.equal(g.data.get(KEY2),saved,'Practice cannot change original score');
  g.click('view',{view:'map'});
  g.click('jump',{n:'0'});
  assert.match(g.app.innerHTML,/data-action="replay"/,'Normal review still shows past completion');
@@ -190,6 +196,64 @@ for(let unit=3;unit<=6;unit++){
  g.click('part',{n:'1'});g.click('part',{n:'0'});g.click('check'); // IM + POLITE
  assert.match(g.app.innerHTML,/Practice complete/);
  assert.deepEqual(JSON.parse(g.data.get(key)),old,'Legacy saved Unit 5 progress unchanged');
+}
+
+
+/* Every choice mission: stable shuffle, hidden spoilers, distributed answers. */
+{
+ const answerPositions=[0,0,0];
+ const key=unit=>unit===1?KEY1:'wordquest_g7u'+unit+'_semester_v1';
+ let checked=0,reordered=0;
+ for(let unit=1;unit<=6;unit++){
+  const base=game(unit,{});
+  const puzzles=unit===1?base.context.window.WordQuestUnit1.missions:base.context.window.WORDQUEST_CONTENT.missions[unit];
+  for(let i=0;i<puzzles.length;i++){
+   const p=puzzles[i],mode=unit===1?p.type:p.mode;
+   if(mode!=='choice')continue;
+   const saved=unit===1?{current:i,maxUnlocked:i,earned:{},misses:{},score:0,view:'play'}:
+     {current:i,unlocked:i,completed:{},mistakes:{},points:0,tab:'play'};
+   const g=game(unit,{[key(unit)]:JSON.stringify(saved)});
+   const currentOrder=()=>[...g.app.innerHTML.matchAll(/class="option [^"]*" data-action="choose" data-n="(\d+)"/g)].map(match=>Number(match[1]));
+   const order=currentOrder();
+   assert.equal(order.length,p.options.length,'All choices must render');
+   if(order.some((n,j)=>n!==j))reordered++;
+   const pos=order.indexOf(p.answer);
+   assert.ok(pos>=0,'Original answer index must be preserved');
+   answerPositions[pos]++;checked++;
+   g.click('hint');
+   assert.deepEqual(currentOrder(),order,'Hint redraw must preserve choice order');
+   g.click('view',{view:'map'});
+   assert.ok(!g.app.innerHTML.includes('<small>'+p.word+'</small>'),
+     'Unsolved map must not show '+p.word);
+  }
+ }
+ assert.equal(checked,77,'Every multiple choice mission tested');
+ assert.ok(reordered>50,'Most data-ordered choices should move');
+ assert.ok(answerPositions.every(n=>n>=12&&n<=40),
+   'Answer position balance: '+JSON.stringify(answerPositions));
+}
+{
+ const g=game(2,{});
+ g.click('choose',{n:'1'});
+ const saved=g.data.get(KEY2);
+ assert.equal(g.readKey(KEY2).mistakes['0'],1);
+ assert.match(g.app.innerHTML,/class="option wrong" data-action="choose" data-n="1" disabled/);
+ g.click('choose',{n:'1'});
+ assert.equal(g.data.get(KEY2),saved,'Repeated wrong tap must be ignored');
+ g.click('hint');
+ assert.match(g.app.innerHTML,/data-action="choose" data-n="1" disabled/);
+ g.click('choose',{n:'0'});
+ assert.equal(g.readKey(KEY2).completed['0'],55,'Miss plus hint deducts points consistently');
+}
+{
+ const g=game(1,{});
+ for(let i=0;i<3;i++){g.click('part',{n:'0'});g.click('check');}
+ assert.match(g.app.innerHTML,/Reveal solution/,'Three wrong builds do not auto-solve');
+ assert.equal(g.readKey(KEY1).earned?.['0'],undefined);
+ g.click('reveal');
+ assert.equal(g.readKey(KEY1).earned['0'],0,'Explicit reveal earns no XP');
+ assert.equal(g.readKey(KEY1).maxUnlocked,1);
+ assert.equal(g.readKey(KEY1).misses['0'],3);
 }
 
 console.log('Unified engine tests passed: six units, replay, XP safety, saved progress, content.');
