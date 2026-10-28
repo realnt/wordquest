@@ -1,15 +1,7 @@
-# Claude.ai chat — Word Quest collaboration entry point
+# Claude — Word Quest collaboration entry point
 
-This repository is used jointly from **regular Claude.ai chat** and **regular ChatGPT chat** (not necessarily Claude Code / Codex). A web chat may **not** automatically load this file; attach it or ask the assistant to read it from the connected private GitHub repository.
+**Claude Code** uses this project `CLAUDE.md` as repository instructions. A **regular Claude.ai web chat** may not automatically read it; open it through an authorized GitHub connection or paste a link/content when necessary. The repository is currently public.
 
-Before proposing changes, read:
-1. [AI collaboration workflow](docs/AI_COLLABORATION.md)
-2. [Canonical product decisions](docs/Master_Blueprint.md)
-3. [English implementation guide](docs/Development_Guide_EN.md) and [中文开发指南](docs/Development_Guide_ZH.md)
-4. The relevant latest source files on `main` and the assigned GitHub issue/PR.
+Follow [AGENTS.md](AGENTS.md) and the [collaboration workflow](docs/AI_COLLABORATION.md). The [Master Blueprint](docs/Master_Blueprint.md) is the canonical source for product constraints (especially §6) and the reusable handoff/change-request prompts (Appendices A and B). Do not duplicate those rules in this file.
 
-**First task:** [Issue #11 — v1.5.2 documentation and release audit](https://github.com/realnt/wordquest/issues/11). Please act as an **independent reviewer**. Cite specific paths/sections, distinguish confirmed facts from missing evidence, and propose minimal corrections. Do not rewrite the site or treat unverified live deployments/iPhone voices as tested.
-
-The project preserves six units, 109 missions, browser-local progress, all legacy `localStorage` schemas, replay without duplicate XP, compact speech settings, and English-first bilingual learning. Do not add progress import/export, accounts, or sync in v1.5.x.
-
-Return a concise review with: **Confirmed / Defects / Suggested changes / Tests & evidence / Decision (GO or NO-GO)**. If the chat cannot post GitHub comments, ask the user to paste the review into the issue or PR. Never assume another chat can see your answer.
+Read the **current** Issue, PR, `main` source and assigned role before editing or reviewing. If reviewing, report **Confirmed / Defects / Proposed changes / Test evidence and gaps / GO or NO-GO**, with file-specific references. Record findings in the Issue/PR when authorized, otherwise pass them through the user. Never assume another AI chat automatically receives your work. **No merging without owner approval.**
