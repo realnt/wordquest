@@ -151,6 +151,7 @@ for(let unit=3;unit<=6;unit++){
  assert.match(g.app.innerHTML,/Reveal solution/,'Three wrong builds require explicit reveal');
  g.click('reveal');
  assert.match(g.app.innerHTML,/Practice complete/,'Revealed practice shows explanation');
+ assert.doesNotMatch(g.app.innerHTML,/No XP this time/,'Practice reveal does not show the 0 XP note');
  assert.equal(g.data.get(KEY1),storedBefore,'Practice misses and auto-unlocks must not change XP or misses');
  const refresh=game(1,{[KEY1]:storedBefore});
  assert.match(refresh.app.innerHTML,/data-action="replay"/,'Saved completion survives refresh');
@@ -252,6 +253,7 @@ for(let unit=3;unit<=6;unit++){
  assert.equal(g.readKey(KEY1).earned?.['0'],undefined);
  g.click('reveal');
  assert.equal(g.readKey(KEY1).earned['0'],0,'Explicit reveal earns no XP');
+ assert.match(g.app.innerHTML,/No XP this time\. Tap Replay to try it on your own\./,'Reveal explains 0 XP in a friendly way');
  assert.equal(g.readKey(KEY1).maxUnlocked,1);
  assert.equal(g.readKey(KEY1).misses['0'],3);
 }

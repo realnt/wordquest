@@ -62,3 +62,15 @@ assert.equal(special.missions.length,23);
 assert.equal(special.missionTranslations.length,23);
 assert.equal(special.originExtras.length,23);
 console.log('Content checks passed:',checked,'missions,',builds,'word builds,',choices,'choices.');
+
+/* v1.5.3: Chinese question and scene text must not contain the Chinese gloss of the answer for U2 M10 (preparation → 准备). */
+{
+  const vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
+  const ctx={window:{}};vm.createContext(ctx);
+  vm.runInContext(fs.readFileSync(path.join(__dirname,'..','content.js'),'utf8'),ctx);
+  const m=ctx.window.WORDQUEST_CONTENT.missions[2][9];
+  if(m.word!=='preparation')throw new Error('Unit 2 mission 10 is expected to be PREPARATION');
+  for(const field of ['questionZh','sceneZh'])
+    if(String(m[field]).includes('准备'))throw new Error('Unit 2 mission 10 '+field+' reveals the answer (准备)');
+  console.log('Spoiler check passed: Unit 2 mission 10 Chinese text does not reveal the answer.');
+}
