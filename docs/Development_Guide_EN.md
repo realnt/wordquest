@@ -2,11 +2,10 @@
 
 **From learning idea to a deployable and maintainable game**  
 **Repository:** https://github.com/realnt/wordquest  
-**Baseline:** `main` at **v1.5.1** (21 October 2026)  
-**Pending:** [PR #9 — v1.5.2 replay and browser tests](https://github.com/realnt/wordquest/pull/9), not yet merged at this baseline  
+**Baseline:** `main` at **v1.5.2** (merged 21 October 2026 via [PR #9](https://github.com/realnt/wordquest/pull/9))  
 **Production site:** https://wordquest.orbitlab.workers.dev/  
 **GitHub Pages:** https://realnt.github.io/wordquest/  
-**Companion:** [Master Blueprint](Master_Blueprint.md) · [中文版开发指南](Development_Guide_ZH.md)
+**Companion:** [Master Blueprint](Master_Blueprint.md) · [中文版开发指南](Development_Guide_ZH.md) · [AI collaboration workflow](AI_COLLABORATION.md)
 
 This document explains **HOW we built Word Quest and how to reproduce, test and maintain it**. The Master Blueprint owns the educational goals, accepted product decisions, and linguistic quality rules.
 
@@ -40,7 +39,7 @@ We created one playable **Unit 1 prototype**, revised the bilingual teaching exp
 | v1.4.7 | Collapse rarely used voice options into a single settings button; visible version |
 | v1.5.0 | Shared site header/footer via `site-shell.js` and design variables in `site.css` |
 | **v1.5.1** | Unified gameplay for all units in `quest.js` / `quest.css`; Unit 1 data adapted without resetting stored progress |
-| **v1.5.2 proposal** | [PR #9](https://github.com/realnt/wordquest/pull/9): functioning practice/replay mode, mission content validation, Playwright browser tests |
+| **v1.5.2** | [PR #9](https://github.com/realnt/wordquest/pull/9) (merged 21 October 2026): functioning practice/replay mode, mission content validation, Playwright browser tests |
 
 Instead of replacing the site with a new app framework, we refactored the existing working project in small feature branches. Unit 1 was originally self-contained; in v1.5.1 its game logic was merged into the shared engine, keeping the **original mission data and storage contract**.
 
@@ -69,7 +68,7 @@ wordquest/
 └── docs/                       Product blueprint and build guides
 ```
 
-**Files proposed only in PR #9:** `package.json`, `playwright.config.js`, `tests/browser/wordquest.spec.js` and `tests/check_content.js`. Do not assume they are on `main` until merged.
+**Files added in v1.5.2:** `package.json`, `playwright.config.js`, `tests/browser/wordquest.spec.js` and `tests/check_content.js` are now on `main`.
 
 There is **no database server, authentication service, React dependency, bundler, or build step for the running game**. The site consists of static HTML, CSS and JavaScript.
 
@@ -147,7 +146,7 @@ Progress lives in the browser's **localStorage**, with no account and no remote 
 
 The engine reads the original Unit 1 save fields and writes back the same schema. XP and completion must never be awarded twice for the same mission.
 
-**Replay status:** v1.5.1 has a known completed-mission replay defect. The pending PR #9 introduces *Practice mode* that lets a completed question be answered without modifying saved XP or mistake history. Until that PR is merged, it is a proposed change, not a deployed promise.
+**Replay status:** v1.5.2 includes *Practice mode*: students can answer completed questions again without modifying stored XP, completion state or mistake history. This is an implementation statement; verify the deployed site separately.
 
 ## 6. Bilingual UX and pronunciation
 
@@ -186,7 +185,9 @@ On Windows, `py -m http.server 8080` may work if `python3` does not.
 
 Visit **http://localhost:8080/**. Do not rely solely on opening the HTML files with `file://` paths; an HTTP server better reproduces production loading.
 
-### Tests on current v1.5.1 main
+### Tests on current `main` (v1.5.2)
+
+Run the static, unit and content checks:
 
 ```bash
 python3 tests/check_site.py
@@ -196,18 +197,13 @@ node --check site-shell.js
 node --check content.js
 node --check speech.js
 node --check site-version.js
-node tests/test_layout.js
-node tests/test_engine.js
-node tests/test_speech.js
+npm run test:unit
 ```
 
-### Tests after v1.5.2 PR #9 is merged
-
-PR #9 proposes a new all-mission validator and real-browser regression suite. After confirming the files exist on `main`:
+For real-browser regression (desktop Chromium and mobile-sized WebKit):
 
 ```bash
-node tests/check_content.js
-npm install
+npm install --no-audit --no-fund --package-lock=false
 npx playwright install chromium webkit
 npm run test:browser
 ```
@@ -227,11 +223,11 @@ The Playwright suite checks six units, navigation, mission replay, saved-state b
 
 ### CI files and publishing
 
-The repo's `.github/workflows/pages.yml` validates HTML/assets, JS syntax and regression tests on PRs. On approved pushes to `main`, the `publish` job can publish GitHub Pages if the repository is configured appropriately.
+The repo's `.github/workflows/pages.yml` validates HTML/assets, JS syntax and browser regressions on PRs. The **browser** job is pinned to `ubuntu-24.04` because Playwright 1.56.1 cannot install on Ubuntu 26.04; reassess this pin when deliberately updating Playwright. On approved pushes to `main`, the `publish` job can publish GitHub Pages only if Pages is enabled and configured with **GitHub Actions** as its build source.
 
 The production site is connected to a **Cloudflare Worker with static assets**. The checked-in `wrangler.jsonc` names the Worker `wordquest` and maps assets to the repository directory. The **GitHub-to-Cloudflare connection, credentials and dashboard build settings live outside Git**; cloning the repo does not automatically confer deployment rights.
 
-Keep the same existing Cloudflare Worker/domain when continuity of saved progress matters. Verify the actual deployed version and smoke-test both sites rather than assuming a merge has deployed everywhere.
+Keep the same existing Cloudflare Worker/domain when continuity of saved progress matters. After merging, check the **Workers Builds: wordquest** result and the live Cloudflare version badge; separately check the GitHub Actions `publish` result and the live Pages URL. A green PR or merge is not proof of either deployment.
 
 ## 9. Maintaining content and avoiding regressions
 
@@ -247,7 +243,7 @@ Keep the same existing Cloudflare Worker/domain when continuity of saved progres
 
 ## 10. What to improve next
 
-The current project is suitable for iterative maintenance. Prioritize the proposed replay fix (PR #9), more rigorous evidence-based content review, increased mission variety, accessibility auditing and actual iPhone Safari verification. Avoid unnecessary framework migrations, user accounts, cloud sync and progress export unless the product requirements explicitly change.
+The current project is suitable for iterative maintenance. Prioritize more rigorous evidence-based content review, increased mission variety, accessibility auditing and actual iPhone Safari verification. Avoid unnecessary framework migrations, user accounts, cloud sync and progress export unless the product requirements explicitly change.
 
 ---
 
