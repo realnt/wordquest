@@ -27,7 +27,8 @@ jobs:
           node tests/test_speech.js
   browser:
     needs: validate
-    runs-on: ubuntu-latest
+    # Playwright 1.56.1 does not support Ubuntu 26.04 (ubuntu-latest in late 2026).
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
