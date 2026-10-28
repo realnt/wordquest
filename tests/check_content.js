@@ -74,3 +74,76 @@ console.log('Content checks passed:',checked,'missions,',builds,'word builds,',c
     if(String(m[field]).includes('准备'))throw new Error('Unit 2 mission 10 '+field+' reveals the answer (准备)');
   console.log('Spoiler check passed: Unit 2 mission 10 Chinese text does not reveal the answer.');
 }
+
+/* v1.5.4 (#16): answer integrity and no spoilers in mission titles, across all six units. */
+{
+  const vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
+  const ctx={window:{}};vm.createContext(ctx);
+  for(const f of ['content.js','unit1-data.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..',f),'utf8'),ctx);
+  const D=ctx.window.WORDQUEST_CONTENT,U=ctx.window.WordQuestUnit1,all=[];
+  U.missions.forEach((m,i)=>all.push({tag:'U1 M'+(i+1),word:m.word,title:m.title,titleZh:U.missionTranslations[i].titleZh,options:m.options,answer:m.answer}));
+  for(let u=2;u<=6;u++)D.missions[u].forEach((m,i)=>all.push({...m,tag:'U'+u+' M'+(i+1)}));
+  // Missions whose correct option legitimately differs from the target word (inflection, or the question asks for a meaning).
+  const optionExceptions=new Set(['U4 M15','U6 M6']);
+  // U6 M6 asks what BANK means, so naming the word in the title is intended.
+  const titleExceptions=new Set(['U6 M6']);
+  const norm=s=>String(s).toLowerCase().replace(/^(a|an|the) /,'');
+  let checked=0;
+  for(const m of all){
+    if(m.options){
+      if(new Set(m.options.map(norm)).size!==m.options.length)throw new Error(m.tag+': options must be unique');
+      if(!Number.isInteger(m.answer)||m.answer<0||m.answer>=m.options.length)throw new Error(m.tag+': answer index out of range');
+      if(!m.word.includes('/')&&!optionExceptions.has(m.tag)&&!norm(m.options[m.answer]).includes(norm(m.word)))
+        throw new Error(m.tag+': answer index points to "'+m.options[m.answer]+'", not the target word "'+m.word+'"');
+      checked++;
+    }
+    if(!titleExceptions.has(m.tag)){
+      const parts=m.word.toLowerCase().split(/[ \/]+/).filter(p=>p.length>3);
+      for(const t of [m.title,m.titleZh])
+        if(t&&parts.some(p=>t.toLowerCase().includes(p)))throw new Error(m.tag+': title "'+t+'" gives away the answer');
+    }
+  }
+  console.log('Answer-integrity checks passed: '+checked+' missions with options (77 multiple-choice + 21 word-building in Units 2–6) point to their target word; no English title reveals its answer.');
+}
+
+/* v1.5.4 (#16, review on PR #21): Chinese text must not spoil the answer with its textbook gloss.
+   Titles: no exceptions. Questions/scenes: only where the English text already gives the same
+   meaning, or where the match is accidental. Each exception states why. */
+{
+  const vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
+  const ctx={window:{}};vm.createContext(ctx);
+  for(const f of ['content.js','unit1-data.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..',f),'utf8'),ctx);
+  const D=ctx.window.WORDQUEST_CONTENT,U=ctx.window.WordQuestUnit1,all=[];
+  const g1=Object.values(U.glossary).flat();
+  U.missions.forEach((m,i)=>all.push({...U.missionTranslations[i],word:m.word,tag:'U1 M'+(i+1),gl:g1}));
+  for(let u=2;u<=6;u++)D.missions[u].forEach((m,i)=>all.push({...m,tag:'U'+u+' M'+(i+1),gl:D.glossaries[u]}));
+  const allowed={
+    'U1 M6 questionZh':'名词 is a grammar label from the gloss note, not the meaning',
+    'U1 M12 questionZh':'English question itself gives the meaning ("not possible")',
+    'U4 M12 sceneZh':'English scene itself says "medical services"',
+    'U4 M14 questionZh':'English question itself names both meanings',
+    'U4 M14 sceneZh':'English scene itself says "studies the words again"',
+    'U5 M4 sceneZh':'accidental substring: 指导 + 演员, not 导演',
+    'U5 M5 questionZh':'制作 (making) is generic, as in the English "process"',
+    'U5 M14 sceneZh':'English scene itself says "comes back"',
+    'U6 M14 questionZh':'English question itself gives the meaning ("supply")',
+    'U6 M18 questionZh':'English question itself gives the meaning ("most important")'
+  };
+  let checked=0;const used=new Set();
+  for(const m of all){
+    const words=m.word.toLowerCase().split(/\s*\/\s*/),segs=new Set();
+    for(const [w,z] of m.gl){const lw=w.toLowerCase();
+      if(words.some(x=>lw===x||lw.split(/\s*\/\s*/).includes(x)))
+        for(const s of String(z).split(/[；;，,、（）()]/))if(s.trim().length>=2)segs.add(s.trim());}
+    if(!segs.size)continue;checked++;
+    for(const f of ['titleZh','questionZh','sceneZh']){
+      const hit=[...segs].filter(s=>String(m[f]||'').includes(s));
+      if(!hit.length)continue;
+      const key=m.tag+' '+f;
+      if(f!=='titleZh'&&allowed[key]){used.add(key);continue;}
+      throw new Error(key+' contains the Chinese meaning of the answer ('+hit.join(', ')+'): '+m[f]);
+    }
+  }
+  for(const key of Object.keys(allowed))if(!used.has(key))throw new Error('Stale Chinese-spoiler exception, remove it: '+key);
+  console.log('Chinese spoiler checks passed: '+checked+' missions checked against their textbook glosses; '+used.size+' documented exceptions.');
+}

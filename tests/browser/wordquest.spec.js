@@ -9,7 +9,7 @@ for(let unit=1;unit<=6;unit++){
     page.on('pageerror',error=>errors.push(error.message));
     await page.goto('/unit'+unit+'.html');
     await expect(page.locator('.wq-header')).toBeVisible();
-    await expect(page.locator('[data-wordquest-version]')).toHaveText('v1.5.3');
+    await expect(page.locator('[data-wordquest-version]')).toHaveText('v1.5.4');
     await expect(page.locator('.mission-title')).toBeVisible();
     await expect(page.locator('.speech-settings-trigger')).toBeVisible();
     await page.locator('.wq-nav [data-view="map"]').click();
@@ -98,7 +98,7 @@ test('voice settings remain compact and preferences persist',async({page})=>{
 
 test('homepage: six units and version displayed',async({page})=>{
   await page.goto('/index.html');
-  await expect(page.locator('[data-wordquest-version]')).toHaveText('v1.5.3');
+  await expect(page.locator('[data-wordquest-version]')).toHaveText('v1.5.4');
   await expect(page.locator('.unitcard')).toHaveCount(6);
   await expect(page.locator('#home-progress-count')).toContainText('0 / 109');
 });
