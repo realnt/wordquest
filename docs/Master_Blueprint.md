@@ -1,7 +1,7 @@
 # Word Quest — Master Blueprint
 
 **Product specification, design decisions, and AI development handoff**  
-**Baseline:** repository `main` at **v1.5.2** · merged **21 October 2026** via [PR #9](https://github.com/realnt/wordquest/pull/9)  
+**Baseline:** repository `main` at **v1.5.3** via [PR #20](https://github.com/realnt/wordquest/pull/20) · builds on v1.5.2 (merged 21 October 2026 via [PR #9](https://github.com/realnt/wordquest/pull/9))  
 **Repository:** https://github.com/realnt/wordquest  
 **Production URL:** https://wordquest.orbitlab.workers.dev/  
 **Curriculum:** 上海五四制 2024 新版七年级英语上册 / 2024 Shanghai five-four-system Grade 7 English, Semester 1
@@ -53,6 +53,8 @@ Every mission should contain:
 6. **Next / Map / Review:** direct navigation, the saved mission map, and vocabulary revision.
 
 Game-wide mechanics: ordered mission unlocking, multiple choice, word building, XP, mistakes, individual and global Chinese support, per-unit Word Vault, hints, and a completion screen.
+
+**Assessment integrity (since v1.5.3, owner decision 28 Oct 2026):** answer options are shown in a stable shuffled order; the map hides unsolved answers; an already-tried wrong option cannot cost another try. After three wrong word-building attempts the student explicitly reveals the solution, which earns **0 XP** in every unit, with a friendly note. XP is kept as a game mechanic; previously saved XP is never recalculated.
 
 **Replay requirement:** Since **v1.5.2**, completed missions reopen in a temporary, explicitly labeled **Practice mode**. Practice attempts, hints and reveals must never add XP, overwrite completed progress, or increase historical mistake totals. On refresh, completed missions return to review mode.
 
@@ -127,7 +129,8 @@ Compact mobile hero (title, XP, progress), readable English, clear chosen/wrong/
 | v1.4.7 | Compact voice-settings button and shared version badge |
 | v1.5.0 | Shared page header/footer and design system |
 | v1.5.1 | One gameplay engine and stylesheet for all six units, Unit 1 data adapter |
-| **v1.5.2 — merged 21 Oct 2026** | [PR #9](https://github.com/realnt/wordquest/pull/9): functioning replay practice, content checks, real-browser regressions |
+| v1.5.2 — merged 21 Oct 2026 | [PR #9](https://github.com/realnt/wordquest/pull/9): functioning replay practice, content checks, real-browser regressions |
+| **v1.5.3** | [PR #20](https://github.com/realnt/wordquest/pull/20): shuffled answer options, no answers on the mission map, fair retries, reveal = 0 XP in every unit, English page language |
 
 Use the [repository PR history](https://github.com/realnt/wordquest/pulls?q=is%3Apr+is%3Aclosed) and actual `site-version.js` for current state.
 
