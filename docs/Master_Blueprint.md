@@ -1,8 +1,7 @@
 # Word Quest — Master Blueprint
 
 **Product specification, design decisions, and AI development handoff**  
-**Baseline:** released repository `main` at **v1.5.1** · **21 October 2026**  
-**Next proposed release:** [v1.5.2 — PR #9](https://github.com/realnt/wordquest/pull/9), **not merged at this baseline**  
+**Baseline:** repository `main` at **v1.5.2** · merged **21 October 2026** via [PR #9](https://github.com/realnt/wordquest/pull/9)  
 **Repository:** https://github.com/realnt/wordquest  
 **Production URL:** https://wordquest.orbitlab.workers.dev/  
 **Curriculum:** 上海五四制 2024 新版七年级英语上册 / 2024 Shanghai five-four-system Grade 7 English, Semester 1
@@ -55,7 +54,7 @@ Every mission should contain:
 
 Game-wide mechanics: ordered mission unlocking, multiple choice, word building, XP, mistakes, individual and global Chinese support, per-unit Word Vault, hints, and a completion screen.
 
-**Replay requirement:** Completed missions must be reviewable. **v1.5.1 currently shows the solution instead of reopening the question.** PR #9 proposes temporary Practice mode in v1.5.2; practice must never add XP, overwrite a completed record, or increase historical mistake totals. Do not document the proposal as released until PR #9 is merged.
+**Replay requirement:** Since **v1.5.2**, completed missions reopen in a temporary, explicitly labeled **Practice mode**. Practice attempts, hints and reveals must never add XP, overwrite completed progress, or increase historical mistake totals. On refresh, completed missions return to review mode.
 
 ## 4. Bilingual design
 
@@ -127,8 +126,8 @@ Compact mobile hero (title, XP, progress), readable English, clear chosen/wrong/
 | v1.4.3–v1.4.6 | UK/US accents, adjustable speed, individual voice picker, styling refinement |
 | v1.4.7 | Compact voice-settings button and shared version badge |
 | v1.5.0 | Shared page header/footer and design system |
-| **v1.5.1 — released baseline** | One gameplay engine and stylesheet for all six units, Unit 1 data adapter |
-| **v1.5.2 — proposed** | [PR #9](https://github.com/realnt/wordquest/pull/9): functioning replay practice, content checks, real-browser regressions. Not merged as of 21 Oct 2026 |
+| v1.5.1 | One gameplay engine and stylesheet for all six units, Unit 1 data adapter |
+| **v1.5.2 — merged 21 Oct 2026** | [PR #9](https://github.com/realnt/wordquest/pull/9): functioning replay practice, content checks, real-browser regressions |
 
 Use the [repository PR history](https://github.com/realnt/wordquest/pulls?q=is%3Apr+is%3Aclosed) and actual `site-version.js` for current state.
 
@@ -157,7 +156,7 @@ Use the [repository PR history](https://github.com/realnt/wordquest/pulls?q=is%3
 
 ## Appendix A — reusable AI / developer handoff prompt
 
-Copy and customize this prompt when starting a new ChatGPT/Codex task:
+**Canonical cross-assistant handoff prompt:** copy and customize this when starting a ChatGPT, Claude or coding-agent task. The [collaboration workflow](AI_COLLABORATION.md) links here rather than maintaining a competing template; Appendix B remains the canonical change-request form.
 
 > You are helping maintain **Word Quest**, an English-first, bilingual Grade 7 vocabulary and word-formation game aligned with the Shanghai five-four-system 2024 English textbook. First inspect https://github.com/realnt/wordquest and the latest merged code, current PRs, `docs/Master_Blueprint.md`, and the appropriate development guide. **Do not rebuild from scratch.**
 >

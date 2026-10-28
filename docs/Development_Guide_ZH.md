@@ -2,11 +2,10 @@
 
 **从教材学习需求到可持续维护的双语英语闯关网站**  
 **GitHub：** https://github.com/realnt/wordquest  
-**文档基线：** 2026 年 10 月 21 日，`main` 已合并版本 **v1.5.1**  
-**待合并：** [PR #9 — v1.5.2 重玩修复与浏览器测试](https://github.com/realnt/wordquest/pull/9)（在本版文档编写时尚未合并）  
+**文档基线：** `main` 为 **v1.5.2**（[PR #9](https://github.com/realnt/wordquest/pull/9) 于 2026 年 10 月 21 日合并）  
 **Cloudflare 正式网址：** https://wordquest.orbitlab.workers.dev/  
 **GitHub Pages：** https://realnt.github.io/wordquest/  
-**配套文档：** [项目总蓝图](Master_Blueprint.md) · [English Development Guide](Development_Guide_EN.md)
+**配套文档：** [项目总蓝图](Master_Blueprint.md) · [English Development Guide](Development_Guide_EN.md) · [AI 协作流程](AI_COLLABORATION.md)
 
 本指南回答 **“Word Quest 是怎样一步步开发出来的、如何在自己的电脑上运行、怎样继续开发与发布？”**。它主要记录技术方法和维护流程。产品理念、教育原则、已经确认的需求与禁止随意改变的决策，以《[Master Blueprint](Master_Blueprint.md)》为准。
 
@@ -48,7 +47,7 @@ Word Quest 不是一次性生成的网站，而是逐步通过学生使用体验
 | v1.4.7 | 声音设置收纳为小按钮；所有页面显示统一版本号 |
 | v1.5.0 | 提取公共页头/页脚 `site-shell.js`，统一公共设计系统 `site.css` |
 | **v1.5.1** | U1–U6 统一使用 `quest.js` 和 `quest.css`，U1 内容仍独立存放，旧存档兼容 |
-| **v1.5.2 待合并** | [PR #9](https://github.com/realnt/wordquest/pull/9)：解决已完成关卡无法重新作答的问题，增加 Playwright 真实浏览器回归测试 |
+| **v1.5.2** | [PR #9](https://github.com/realnt/wordquest/pull/9)（2026 年 10 月 21 日已合并）：修复已完成关卡重玩、增加内容校验和 Playwright 浏览器回归测试 |
 
 **工程方法上的关键选择：**没有因为页面变复杂就全面重写成 React 应用，而是先保证已有功能与学习进度，再通过小型 Pull Request 逐步统一结构。这种方式也方便日后更换开发者或由 ChatGPT / Codex 继续维护。
 
@@ -77,7 +76,7 @@ wordquest/
 └── docs/                      项目总蓝图与中英文开发指南
 ```
 
-**注意版本差异：**`package.json`、`playwright.config.js`、`tests/browser/wordquest.spec.js` 和 `tests/check_content.js` 在写作时属于**尚未合并的 PR #9**，不是当前 `main` 的既有文件。
+**v1.5.2 新增文件：**`package.json`、`playwright.config.js`、`tests/browser/wordquest.spec.js` 和 `tests/check_content.js` 均已合并到 `main`。
 
 项目本体是**纯 HTML + CSS + JavaScript**。不依赖 React、构建打包器、用户数据库或后端业务 API，因而部署与离线开发相对简单。
 
@@ -161,7 +160,7 @@ Word Quest 没有账号、云端学习记录或数据库。浏览器的 `localSt
 - 同一网站源发布新的前端文件，通常不会影响该源现存的浏览器记录。
 - 本阶段**不开发导入/导出存档、用户账号或自动跨设备同步**，除非产品需求明确改变。
 
-**重玩状态：**v1.5.1 已完成关卡仍存在重新作答的缺陷。待合并的 PR #9 将加入 Practice 模式，让学生重做而不重复获取 XP、不增加旧错误记录。合并前请不要称其为已上线功能。
+**重玩状态：**v1.5.2 已包含 **Practice（练习）模式**：完成过的关卡可重新作答，但不重复获得 XP、不修改已保存的完成状态和错误记录。此处描述的是已合并代码；线上是否更新仍需单独核验。
 
 ## 六、中英文交互与语音朗读
 
@@ -210,7 +209,9 @@ py -m http.server 8080
 
 在浏览器打开 **http://localhost:8080/**。推荐 HTTP 模式而不是直接双击本地 HTML，因为它与线上静态资源的加载方式更接近。
 
-### v1.5.1 当前 `main` 的测试方法
+### 当前 `main`（v1.5.2）的测试方法
+
+先运行静态检查、单元测试及全部关卡内容检查：
 
 ```bash
 python3 tests/check_site.py
@@ -220,18 +221,13 @@ node --check site-shell.js
 node --check content.js
 node --check speech.js
 node --check site-version.js
-node tests/test_layout.js
-node tests/test_engine.js
-node tests/test_speech.js
+npm run test:unit
 ```
 
-### v1.5.2 PR #9 合并后新增的测试
-
-只有确认对应文件已经在 `main` 中，才执行以下命令：
+再运行真实浏览器回归测试（桌面 Chromium 和移动屏幕尺寸 WebKit）：
 
 ```bash
-node tests/check_content.js
-npm install
+npm install --no-audit --no-fund --package-lock=false
 npx playwright install chromium webkit
 npm run test:browser
 ```
@@ -251,11 +247,11 @@ Playwright 方案覆盖所有六个单元、导航、关卡重玩、存档、版
 
 ### GitHub Pages 与 Cloudflare 的区别
 
-仓库中的 `.github/workflows/pages.yml` 是 GitHub Actions 测试与 GitHub Pages 发布流程；推送到 `main` 后，前提是 Pages 已正确配置，才能完成相关发布。
+仓库中的 `.github/workflows/pages.yml` 是 GitHub Actions 测试与 GitHub Pages 发布流程。**浏览器测试任务固定使用 `ubuntu-24.04`**，因为当前 Playwright 1.56.1 无法在 Ubuntu 26.04 上安装浏览器；日后升级 Playwright 时可再评估。推送到 `main` 后，只有启用 Pages 且将构建来源设为 **GitHub Actions**，发布任务才能成功。
 
 正式网站使用 **Cloudflare Worker + 静态资源**。`wrangler.jsonc` 描述 Worker 名称及资源目录；但 Cloudflare 仪表板里的 GitHub 关联、构建设置及访问权限**不包含在仓库源代码中**。因此复制仓库并不等于自动拥有现有 Cloudflare 项目的部署权限。
 
-为延续学生在原浏览器保存的进度，应尽量继续使用同一个正式域名，而不是每次都新建 Worker 或换域名。
+为延续学生在原浏览器保存的进度，应尽量继续使用同一个正式域名，而不是每次都新建 Worker 或换域名。合并后需分别查看 Cloudflare 的 **Workers Builds: wordquest** 检查结果及线上版本号，以及 GitHub Actions 的 `publish` 任务与 Pages 网址；**合并成功不等于两个站点都发布成功**。
 
 ## 九、如何安全维护与继续扩展
 
@@ -271,7 +267,7 @@ Playwright 方案覆盖所有六个单元、导航、关卡重玩、存档、版
 
 ## 十、今后的优先事项
 
-近期以合并并验证 v1.5.2 的重玩修复为先，再逐步提升真实教材核查、推理题型多样性、无障碍支持、真实 iPhone Safari 检查。现阶段不必为了“技术先进”引入重型框架或数据库，也不应在未经同意的情况下开发云同步或存档导入导出。
+近期应优先提升真实教材核查、推理题型多样性、无障碍支持与真实 iPhone Safari 检查；v1.5.2 的重玩修复已经合并。现阶段不必为了“技术先进”引入重型框架或数据库，也不应在未经同意的情况下开发云同步或存档导入导出。
 
 ---
 
