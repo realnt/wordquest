@@ -13,7 +13,7 @@ These three version-controlled Markdown documents are the **canonical project re
 | [Master Blueprint](docs/Master_Blueprint.md) | **What and why:** curriculum, pedagogy, accepted product decisions, compatibility, release policy, plus reusable AI handoff and change-request templates |
 | [Development Guide — English](docs/Development_Guide_EN.md) | **How:** project history, source layout, gameplay engine, speech, testing, local setup, CI and deployment |
 | [开发与维护指南 — 中文](docs/Development_Guide_ZH.md) | 与英文技术指南对应的中文版，适合交接、分享与后续维护 |
-| [ChatGPT × Claude.ai collaboration](docs/AI_COLLABORATION.md) | Shared issue/PR handoff and review workflow for regular web chat interfaces |
+| [ChatGPT × Claude collaboration](docs/AI_COLLABORATION.md) | How ChatGPT and Claude share work: issues, one writer per branch, independent review, disagreements and release checks |
 
 **Version note:** `main` contains **v1.5.2**, merged through [PR #9](https://github.com/realnt/wordquest/pull/9) on 21 October 2026. The Blueprint and both development guides have been updated to this baseline. The existing DOCX editions are shareable reading copies; GitHub Markdown is the maintainable source of truth.
 
