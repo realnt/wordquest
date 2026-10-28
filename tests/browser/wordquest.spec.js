@@ -9,7 +9,7 @@ for(let unit=1;unit<=6;unit++){
     page.on('pageerror',error=>errors.push(error.message));
     await page.goto('/unit'+unit+'.html');
     await expect(page.locator('.wq-header')).toBeVisible();
-    await expect(page.locator('[data-wordquest-version]')).toHaveText('v1.5.2');
+    await expect(page.locator('[data-wordquest-version]')).toHaveText('v1.5.3');
     await expect(page.locator('.mission-title')).toBeVisible();
     await expect(page.locator('.speech-settings-trigger')).toBeVisible();
     await page.locator('.wq-nav [data-view="map"]').click();
@@ -45,6 +45,8 @@ test('Unit 1: replay word-building and protect earned XP',async({page})=>{
     await page.locator('[data-action="part"][data-n="0"]').click();
     await page.locator('[data-action="check"]').click();
   }
+  await expect(page.locator('[data-action="reveal"]')).toBeVisible();
+  await page.locator('[data-action="reveal"]').click();
   await expect(page.locator('.feedback')).toContainText('Practice complete');
   expect(await storage(page,progressKey(1))).toBe(original);
   await page.reload();
@@ -64,8 +66,10 @@ test('Unit 2: retry choice, reveal solution and maintain original score',async({
   await expect(page.locator('.feedback')).toContainText('Practice complete');
   expect(await storage(page,progressKey(2))).toBe(earned);
   await page.locator('[data-action="replay"]').click();
-  for(let n=0;n<3;n++)await page.locator('[data-action="choose"][data-n="1"]').click();
-  await page.locator('[data-action="reveal"]').click();
+  await page.locator('[data-action="choose"][data-n="1"]').click();
+  await expect(page.locator('[data-action="choose"][data-n="1"]')).toBeDisabled();
+  await page.locator('[data-action="choose"][data-n="2"]').click();
+  await page.locator('[data-action="choose"][data-n="0"]').click();
   expect(await storage(page,progressKey(2))).toBe(earned);
 });
 
@@ -94,7 +98,38 @@ test('voice settings remain compact and preferences persist',async({page})=>{
 
 test('homepage: six units and version displayed',async({page})=>{
   await page.goto('/index.html');
-  await expect(page.locator('[data-wordquest-version]')).toHaveText('v1.5.2');
+  await expect(page.locator('[data-wordquest-version]')).toHaveText('v1.5.3');
   await expect(page.locator('.unitcard')).toHaveCount(6);
   await expect(page.locator('#home-progress-count')).toContainText('0 / 109');
 });
+
+
+test('learning integrity: stable choices, no map spoilers, fair retries',async({page})=>{
+ await page.goto('/unit2.html');
+ await expect(page.locator('html')).toHaveAttribute('lang','en');
+ const order=()=>page.locator('.option').evaluateAll(nodes=>nodes.map(el=>el.getAttribute('data-n')));
+ const before=await order();
+ await page.locator('[data-action="hint"]').click();
+ expect(await order()).toEqual(before);
+ await page.locator('[data-action="choose"][data-n="1"]').click();
+ const saved=await storage(page,progressKey(2));
+ expect(JSON.parse(saved).mistakes['0']).toBe(1);
+ await expect(page.locator('[data-action="choose"][data-n="1"]')).toBeDisabled();
+ await page.locator('[data-action="choose"][data-n="1"]').dispatchEvent('click');
+ expect(await storage(page,progressKey(2))).toBe(saved);
+ expect(await order()).toEqual(before);
+ await page.locator('.wq-nav [data-view="map"]').click();
+ await expect(page.locator('.maptile').first()).toContainText('Solve to reveal');
+ await expect(page.locator('.maptile').first()).not.toContainText('weak');
+ await page.locator('.wq-nav [data-view="play"]').click();
+ await page.locator('[data-action="choose"][data-n="0"]').click();
+ expect(JSON.parse(await storage(page,progressKey(2))).completed['0']).toBe(55);
+ await page.locator('.wq-nav [data-view="map"]').click();
+ await expect(page.locator('.maptile').first()).toContainText('weak');
+});
+for(const name of ['index.html','unit1.html','unit2.html','unit3.html','unit4.html','unit5.html','unit6.html']){
+ test('document language: '+name,async({page})=>{
+  await page.goto('/'+name);
+  await expect(page.locator('html')).toHaveAttribute('lang','en');
+ });
+}

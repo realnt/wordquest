@@ -1,6 +1,6 @@
 # Word Quest — Grade 7 Semester 1
 
-**Version:** 1.5.2 · **6 units** · **109 missions** · **265 textbook vocabulary/expression entries**
+**Version:** 1.5.3 (candidate release) · **6 units** · **109 missions** · **265 textbook vocabulary/expression entries**
 
 Interactive English vocabulary and etymology game aligned with Shanghai 五四制 2024 Grade 7.
 
@@ -15,7 +15,7 @@ These three version-controlled Markdown documents are the **canonical project re
 | [开发与维护指南 — 中文](docs/Development_Guide_ZH.md) | 与英文技术指南对应的中文版，适合交接、分享与后续维护 |
 | [ChatGPT × Claude collaboration](docs/AI_COLLABORATION.md) | How ChatGPT and Claude share work: issues, one writer per branch, independent review, disagreements and release checks |
 
-**Version note:** `main` contains **v1.5.2**, merged through [PR #9](https://github.com/realnt/wordquest/pull/9) on 21 October 2026. The Blueprint and both development guides have been updated to this baseline. The existing DOCX editions are shareable reading copies; GitHub Markdown is the maintainable source of truth.
+**Version note:** v1.5.2 was merged through [PR #9](https://github.com/realnt/wordquest/pull/9) on 21 October 2026. Candidate v1.5.3 addresses [Issue #15](https://github.com/realnt/wordquest/issues/15): assessment integrity, consistent reveal behavior, bilingual clues and page language. The Blueprint and development guides describe the v1.5.2 baseline pending approval. GitHub Markdown is the maintainable source of truth.
 
 ## Unified game architecture in v1.5.1
 - All **six units now run the same `quest.js` engine** and share the same `quest.css` gameplay styles, `site-shell.js` header/footer, and `site.css` design system.
@@ -39,7 +39,7 @@ These three version-controlled Markdown documents are the **canonical project re
 - **Specific voice picker:** The Voice menu lists only the `en-GB` or `en-US` voices reported by `speechSynthesis.getVoices()` on the current device (for example Microsoft Hazel / Susan or Google UK English Female / Male). The first available voice for the selected accent is chosen by default; there is no redundant `Automatic` entry. Students can use the ▶ preview before choosing; UK and US voice preferences are saved independently in `wordquest_speech_voice_v1`. If a saved voice disappears, playback falls back to the first available voice for the current accent and shows a note. Selecting different voice objects does not guarantee an audible difference if the operating system maps them to similar or shared synthesizers. iPhone and PC may expose completely different voice lists; updates to voices are detected when available.
 - **Compact settings:** A single teal **🔊 UK/US · Voice** button replaces the always-visible controls. Tap to expand accent, voice, preview and speed; **✓ Done** collapses them. Preferences save as they change (also when closing without Done). The controls reappear only when requested, including after page refresh or changing missions.
 - **iOS voice preference:** When there is no saved manual choice and both are available, prefer Daniel for UK and Samantha for US based on device testing. Other voices remain selectable; some installed voices may be unreliable or sound unnatural in iOS Safari.
-- **Visible version:** The homepage and all six units show the version from `site-version.js` (currently **v1.5.2**) beside the Word Quest name. Future releases update `site-version.js` once.
+- **Visible version:** The homepage and all six units show the version from `site-version.js` (currently **v1.5.3** on this branch) beside the Word Quest name. Future releases update `site-version.js` once.
 - Mobile-first layout; the existing XP and saved-progress keys are preserved.
 - Short, visible word-history explanations; no additional Explore More click.
 

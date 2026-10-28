@@ -19,7 +19,7 @@ assert "Automatic</option>" not in (root/"speech.js").read_text(encoding="utf8")
 assert "background-image:linear-gradient" in (root/"speech.css").read_text(encoding="utf8")
 for page in ["index.html"]+[f"unit{i}.html" for i in range(1,7)]:
  assert 'site-version.js' in (root/page).read_text(encoding="utf8"),f"No version script on {page}"
-assert "const VERSION='1.5.2'" in (root/"site-version.js").read_text(encoding="utf8")
+assert "const VERSION='1.5.3'" in (root/"site-version.js").read_text(encoding="utf8")
 speech=(root/"speech.js").read_text(encoding="utf8")
 assert "speech-settings-trigger" in speech and "speech-settings-confirm" in speech
 assert "new MutationObserver(ensureControl)" in speech
@@ -38,4 +38,4 @@ assert 'wordquest_g7u' in (root/"quest.js").read_text(encoding="utf8")
 for name in ["playwright.config.js", "tests/browser/wordquest.spec.js", "tests/check_content.js"]:
  assert (root/name).is_file(),f"Missing regression test: {name}"
 assert "practice:true" in (root/"quest.js").read_text(encoding="utf8")
-print("Word Quest v1.5.2 static checks passed")
+print("Word Quest v1.5.3 static checks passed")
