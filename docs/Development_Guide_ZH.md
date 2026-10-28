@@ -49,7 +49,7 @@ Word Quest 不是一次性生成的网站，而是逐步通过学生使用体验
 | **v1.5.1** | U1–U6 统一使用 `quest.js` 和 `quest.css`，U1 内容仍独立存放，旧存档兼容 |
 | **v1.5.2** | [PR #9](https://github.com/realnt/wordquest/pull/9)（2026 年 10 月 21 日已合并）：修复已完成关卡重玩、增加内容校验和 Playwright 浏览器回归测试 |
 | **v1.5.3** | [PR #20](https://github.com/realnt/wordquest/pull/20)：选项稳定随机排序、地图不再泄露答案、重复点错不再扣次数、所有单元“显示答案”均为 0 XP、页面语言标注 |
-| **v1.5.4** | [PR #21](https://github.com/realnt/wordquest/pull/21)：22 个选择题改用更可信的同类干扰项；7 个泄露答案的关卡标题已更名；新增答案完整性检查 |
+| **v1.5.4** | [PR #21](https://github.com/realnt/wordquest/pull/21)：22 个选择题改用更可信的同类干扰项；泄露答案的关卡标题与中文译文已改写；新增答案完整性及中文释义检查 |
 
 **工程方法上的关键选择：**没有因为页面变复杂就全面重写成 React 应用，而是先保证已有功能与学习进度，再通过小型 Pull Request 逐步统一结构。这种方式也方便日后更换开发者或由 ChatGPT / Codex 继续维护。
 

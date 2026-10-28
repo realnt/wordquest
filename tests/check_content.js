@@ -103,5 +103,47 @@ console.log('Content checks passed:',checked,'missions,',builds,'word builds,',c
         if(t&&parts.some(p=>t.toLowerCase().includes(p)))throw new Error(m.tag+': title "'+t+'" gives away the answer');
     }
   }
-  console.log('Answer-integrity checks passed: '+checked+' missions with options point to their target word; no title reveals its answer.');
+  console.log('Answer-integrity checks passed: '+checked+' missions with options (77 multiple-choice + 21 word-building in Units 2–6) point to their target word; no English title reveals its answer.');
+}
+
+/* v1.5.4 (#16, review on PR #21): Chinese text must not spoil the answer with its textbook gloss.
+   Titles: no exceptions. Questions/scenes: only where the English text already gives the same
+   meaning, or where the match is accidental. Each exception states why. */
+{
+  const vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
+  const ctx={window:{}};vm.createContext(ctx);
+  for(const f of ['content.js','unit1-data.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..',f),'utf8'),ctx);
+  const D=ctx.window.WORDQUEST_CONTENT,U=ctx.window.WordQuestUnit1,all=[];
+  const g1=Object.values(U.glossary).flat();
+  U.missions.forEach((m,i)=>all.push({...U.missionTranslations[i],word:m.word,tag:'U1 M'+(i+1),gl:g1}));
+  for(let u=2;u<=6;u++)D.missions[u].forEach((m,i)=>all.push({...m,tag:'U'+u+' M'+(i+1),gl:D.glossaries[u]}));
+  const allowed={
+    'U1 M6 questionZh':'名词 is a grammar label from the gloss note, not the meaning',
+    'U1 M12 questionZh':'English question itself gives the meaning ("not possible")',
+    'U4 M12 sceneZh':'English scene itself says "medical services"',
+    'U4 M14 questionZh':'English question itself names both meanings',
+    'U4 M14 sceneZh':'English scene itself says "studies the words again"',
+    'U5 M4 sceneZh':'accidental substring: 指导 + 演员, not 导演',
+    'U5 M5 questionZh':'制作 (making) is generic, as in the English "process"',
+    'U5 M14 sceneZh':'English scene itself says "comes back"',
+    'U6 M14 questionZh':'English question itself gives the meaning ("supply")',
+    'U6 M18 questionZh':'English question itself gives the meaning ("most important")'
+  };
+  let checked=0;const used=new Set();
+  for(const m of all){
+    const words=m.word.toLowerCase().split(/\s*\/\s*/),segs=new Set();
+    for(const [w,z] of m.gl){const lw=w.toLowerCase();
+      if(words.some(x=>lw===x||lw.split(/\s*\/\s*/).includes(x)))
+        for(const s of String(z).split(/[；;，,、（）()]/))if(s.trim().length>=2)segs.add(s.trim());}
+    if(!segs.size)continue;checked++;
+    for(const f of ['titleZh','questionZh','sceneZh']){
+      const hit=[...segs].filter(s=>String(m[f]||'').includes(s));
+      if(!hit.length)continue;
+      const key=m.tag+' '+f;
+      if(f!=='titleZh'&&allowed[key]){used.add(key);continue;}
+      throw new Error(key+' contains the Chinese meaning of the answer ('+hit.join(', ')+'): '+m[f]);
+    }
+  }
+  for(const key of Object.keys(allowed))if(!used.has(key))throw new Error('Stale Chinese-spoiler exception, remove it: '+key);
+  console.log('Chinese spoiler checks passed: '+checked+' missions checked against their textbook glosses; '+used.size+' documented exceptions.');
 }

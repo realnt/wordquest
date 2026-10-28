@@ -41,7 +41,7 @@ We created one playable **Unit 1 prototype**, revised the bilingual teaching exp
 | **v1.5.1** | Unified gameplay for all units in `quest.js` / `quest.css`; Unit 1 data adapted without resetting stored progress |
 | **v1.5.2** | [PR #9](https://github.com/realnt/wordquest/pull/9) (merged 21 October 2026): functioning practice/replay mode, mission content validation, Playwright browser tests |
 | **v1.5.3** | [PR #20](https://github.com/realnt/wordquest/pull/20): stable shuffled options, no map spoilers, fair retries, reveal = 0 XP in all units, `lang` metadata |
-| **v1.5.4** | [PR #21](https://github.com/realnt/wordquest/pull/21): stronger wrong options in 22 missions, 7 titles renamed, answer-integrity content checks |
+| **v1.5.4** | [PR #21](https://github.com/realnt/wordquest/pull/21): stronger wrong options in 22 missions, spoiler-free titles and Chinese translations, answer-integrity and Chinese-gloss content checks |
 
 Instead of replacing the site with a new app framework, we refactored the existing working project in small feature branches. Unit 1 was originally self-contained; in v1.5.1 its game logic was merged into the shared engine, keeping the **original mission data and storage contract**.
 

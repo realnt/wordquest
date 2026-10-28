@@ -40,8 +40,8 @@ These three version-controlled Markdown documents are the **canonical project re
 
 ## Better answer choices in v1.5.4
 - **22 multiple-choice missions** now have wrong options of the same word type as the answer that are believable but contradicted by the scene, so students cannot rule them out without understanding the word. Many are words from the same unit, so the options also revise vocabulary.
-- **7 mission titles** that contained the answer (e.g. “A Proud Moment” for *proud*) were renamed in English and Chinese.
-- New content checks: every option list is unique, the answer index points to the target word, and no title reveals its answer.
+- **No more giveaways in titles or translations:** 13 mission titles that contained the answer or its meaning (e.g. “A Proud Moment” for *proud*) were renamed in English and Chinese, and 10 Chinese questions or scenes that added the answer’s Chinese meaning were reworded.
+- New content checks: every option list is unique, the answer index points to the target word, no title reveals its answer, and Chinese text is checked against each answer’s textbook gloss (with documented exceptions).
 
 ## Features
 - English-first game, optional Chinese translations and progressive hints.

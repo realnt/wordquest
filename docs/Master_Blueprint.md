@@ -131,7 +131,7 @@ Compact mobile hero (title, XP, progress), readable English, clear chosen/wrong/
 | v1.5.1 | One gameplay engine and stylesheet for all six units, Unit 1 data adapter |
 | v1.5.2 — merged 21 Oct 2026 | [PR #9](https://github.com/realnt/wordquest/pull/9): functioning replay practice, content checks, real-browser regressions |
 | v1.5.3 | [PR #20](https://github.com/realnt/wordquest/pull/20): shuffled answer options, no answers on the mission map, fair retries, reveal = 0 XP in every unit, English page language |
-| **v1.5.4** | [PR #21](https://github.com/realnt/wordquest/pull/21): plausible same-type wrong options in 22 missions; 7 answer-revealing titles renamed |
+| **v1.5.4** | [PR #21](https://github.com/realnt/wordquest/pull/21): plausible same-type wrong options in 22 missions; answer-revealing titles and Chinese translations reworded |
 
 Use the [repository PR history](https://github.com/realnt/wordquest/pulls?q=is%3Apr+is%3Aclosed) and actual `site-version.js` for current state.
 
