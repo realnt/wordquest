@@ -15,7 +15,7 @@ These three version-controlled Markdown documents are the **canonical project re
 | [开发与维护指南 — 中文](docs/Development_Guide_ZH.md) | 与英文技术指南对应的中文版，适合交接、分享与后续维护 |
 | [ChatGPT × Claude.ai collaboration](docs/AI_COLLABORATION.md) | Shared issue/PR handoff and review workflow for regular web chat interfaces |
 
-**Version note:** These guides describe merged `main` **v1.5.1** and separately identify [PR #9 / proposed v1.5.2](https://github.com/realnt/wordquest/pull/9) as **not yet merged** at the documentation baseline. Update both language guides and the Blueprint when a new release merges. The existing DOCX editions are shareable reading copies; GitHub Markdown is the maintainable source of truth.
+**Version note:** `main` contains **v1.5.2**, merged through [PR #9](https://github.com/realnt/wordquest/pull/9) on 21 October 2026. The Blueprint and both development guides have been updated to this baseline. The existing DOCX editions are shareable reading copies; GitHub Markdown is the maintainable source of truth.
 
 ## Unified game architecture in v1.5.1
 - All **six units now run the same `quest.js` engine** and share the same `quest.css` gameplay styles, `site-shell.js` header/footer, and `site.css` design system.
@@ -23,7 +23,7 @@ These three version-controlled Markdown documents are the **canonical project re
 - The unified engine adapts Unit 1 content to the same story/question, building/choice, hints, word vault, history, and results UI as Units 2–6. Unit 1 keeps its five-chapter map and special learning notes.
 - **Saved progress is backward compatible.** Unit 1 still reads and writes `wordquest_g7u1_v1` (with `earned`, `score`, `maxUnlocked`, etc.). Units 2–6 keep `wordquest_g7uN_semester_v1`. Voice, accent and speech speed keys stay unchanged. Do not delete local browser data.
 - Unit 1's old independent `unit1.js` gameplay engine and `unit1.css` are retired. This makes future gameplay or styling updates single-file changes rather than dual-engine patches.
-- `site-version.js` is the central source for v1.5.1. Regression coverage now includes gameplay integration in `tests/test_engine.js`, shared layout, site integrity and speech controls.
+- `site-version.js` is the central source for the displayed release version. Regression coverage now includes gameplay integration in `tests/test_engine.js`, shared layout, site integrity and speech controls.
 
 ## Reliability update in v1.5.2
 - **Replay works:** Completed missions can be answered again in an explicitly labeled **Practice mode**. Attempts, hints and reveals during practice are temporary and do **not** add XP, change the completion record, or accumulate mistakes.
@@ -39,7 +39,7 @@ These three version-controlled Markdown documents are the **canonical project re
 - **Specific voice picker:** The Voice menu lists only the `en-GB` or `en-US` voices reported by `speechSynthesis.getVoices()` on the current device (for example Microsoft Hazel / Susan or Google UK English Female / Male). The first available voice for the selected accent is chosen by default; there is no redundant `Automatic` entry. Students can use the ▶ preview before choosing; UK and US voice preferences are saved independently in `wordquest_speech_voice_v1`. If a saved voice disappears, playback falls back to the first available voice for the current accent and shows a note. Selecting different voice objects does not guarantee an audible difference if the operating system maps them to similar or shared synthesizers. iPhone and PC may expose completely different voice lists; updates to voices are detected when available.
 - **Compact settings:** A single teal **🔊 UK/US · Voice** button replaces the always-visible controls. Tap to expand accent, voice, preview and speed; **✓ Done** collapses them. Preferences save as they change (also when closing without Done). The controls reappear only when requested, including after page refresh or changing missions.
 - **iOS voice preference:** When there is no saved manual choice and both are available, prefer Daniel for UK and Samantha for US based on device testing. Other voices remain selectable; some installed voices may be unreliable or sound unnatural in iOS Safari.
-- **Visible version:** The homepage and all six units show the single version number **v1.4.7** beside the Word Quest name. Future releases update `site-version.js` once.
+- **Visible version:** The homepage and all six units show the version from `site-version.js` (currently **v1.5.2**) beside the Word Quest name. Future releases update `site-version.js` once.
 - Mobile-first layout; the existing XP and saved-progress keys are preserved.
 - Short, visible word-history explanations; no additional Explore More click.
 
@@ -48,7 +48,7 @@ These three version-controlled Markdown documents are the **canonical project re
 - Optional GitHub Pages: https://realnt.github.io/wordquest/ (once enabled under repository Settings → Pages → GitHub Actions).
 
 ## Publishing
-Changes should be proposed through pull requests. A PR runs the static validation workflow. After you review and merge to `main`, GitHub Actions can publish to GitHub Pages if Pages is enabled. **The production Cloudflare Worker is connected to GitHub and is expected to redeploy after a successful merge to `main`.**
+Changes should be proposed through pull requests. PR checks include static validation and Chromium/WebKit regression tests. After approval and merge to `main`, GitHub Actions can publish to GitHub Pages **only when Pages is enabled and its source is set to GitHub Actions**. Check the `publish` job and the live Pages site separately. The production Cloudflare Worker has its **own** GitHub-connected deployment: check the **Workers Builds: wordquest** status and then open the live Cloudflare URL to confirm the displayed badge/version and a working mission. **A successful merge or GitHub Actions run alone does not prove Cloudflare deployed.**
 
 Check locally with:
 ```bash
