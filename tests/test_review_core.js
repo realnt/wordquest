@@ -52,7 +52,14 @@ test('grade only a completed attempt, once, not each wrong tap', () => {
   assert.equal(R.gradeAttempt({finished:false,correct:false,wrongCount:1}),null);
   assert.equal(R.gradeAttempt({finished:true,correct:true}), R.RATINGS.Good);
   assert.equal(R.gradeAttempt({finished:true,correct:true,hintsUsed:1}),R.RATINGS.Hard);
-  assert.equal(R.gradeAttempt({finished:true,correct:true,chineseAssisted:true}),R.RATINGS.Hard);
+  assert.equal(R.gradeAttempt({finished:true,correct:true,chineseAssisted:true}),R.RATINGS.Good,
+    'Chinese scene/question translations do not lower independent recall');
+  assert.equal(R.gradeAttempt({finished:true,correct:true,chineseAssisted:true,hintsUsed:1}),R.RATINGS.Hard,
+    'An opened hint counts even when the scene is translated');
+  assert.equal(R.gradeAttempt({finished:true,correct:true,hintsUsed:'2'}),R.RATINGS.Hard);
+  assert.equal(R.gradeAttempt({finished:true,correct:true,wrongCount:'2'}),R.RATINGS.Again);
+  assert.equal(R.gradeAttempt({finished:true,correct:true,wrongCount:-1}),R.RATINGS.Good);
+  assert.equal(R.gradeAttempt({finished:true,correct:true,hintsUsed:-1}),R.RATINGS.Good);
   assert.equal(R.gradeAttempt({finished:true,correct:true,wrongCount:1}),R.RATINGS.Again);
   assert.equal(R.gradeAttempt({finished:true,correct:true,wrongCount:3}),R.RATINGS.Again);
   assert.equal(R.gradeAttempt({finished:true,revealed:true}),R.RATINGS.Again);
@@ -63,11 +70,17 @@ test('day boundaries use local calendar date', () => {
   assert.equal(R.localDay(at('2026-10-28T16:00:00Z')),'2026-10-29');
   assert.throws(() => R.localDay('not a date'), TypeError);
 });
-test('monotonic effective clock prevents backward movement', () => {
-  assert.equal(R.stableTime('2026-10-28T10:00:00Z','2026-10-29T00:00:00Z').toISOString(),
-    '2026-10-29T00:00:00.000Z');
+test('bounded clock guard ignores small rollback but recovers from a mistaken future year', () => {
+  assert.equal(R.stableTime('2026-10-29T04:00:00Z','2026-10-29T10:00:00Z').toISOString(),
+    '2026-10-29T10:00:00.000Z');
   assert.equal(R.stableTime('2026-10-30T10:00:00Z','2026-10-29T00:00:00Z').toISOString(),
     '2026-10-30T10:00:00.000Z');
+  assert.equal(R.stableTime('2026-10-30T00:00:00Z','2027-06-01T00:00:00Z').toISOString(),
+    '2026-10-30T00:00:00.000Z', 'A corrected device clock must not lock until June 2027');
+  assert.equal(R.stableTime('2026-10-29T00:00:00Z','2026-10-29T12:00:00Z').toISOString(),
+    '2026-10-29T12:00:00.000Z');
+  assert.equal(R.stableTime('2026-10-28T23:59:59Z','2026-10-29T12:00:00Z').toISOString(),
+    '2026-10-28T23:59:59.000Z');
   assert.throws(() => R.stableTime('bad'),TypeError);
 });
 function cand(unit,index,word,misses=0) {
@@ -96,6 +109,13 @@ test('overdue first, future excluded, same-day rated excluded', () => {
   const chosen=R.selectToday({candidates,cards,now:today});
   assert.deepEqual(chosen,['u1:m1','u2:m1','u2:m0','u2:m2','u3:m0']);
 });
+test('corrupt FSRS due dates are offered as baseline instead of silently lost', () => {
+  const cards={'u1:m0':{due:'not-a-date'},'u1:m1':{due:null},'u1:m2':{due:'2026-10-30T04:00:00Z'}};
+  const chosen=R.selectToday({candidates:candidates.slice(0,3),cards,now:today});
+  assert.deepEqual(chosen,['u1:m1','u1:m0']);
+  const alreadyRated={'u1:m0':{due:'invalid',lastRatedLocalDay:'2026-10-29'}};
+  assert.deepEqual(R.selectToday({candidates:candidates.slice(0,1),cards:alreadyRated,now:today}),[]);
+});
 test('duplicate target words across units appear only once', () => {
   const pairs=[cand(1,0,'a handle'),cand(2,3,' A  HANDLE '),cand(2,4,'other')];
   assert.deepEqual(R.selectToday({candidates:pairs,now:today}),
@@ -108,14 +128,35 @@ test('frozen daily queue resumes without reselecting after refresh', () => {
   assert.notStrictEqual(changed,started);
   assert.notStrictEqual(changed.ids,started.ids);
 });
-test('unfinished session resumes even after midnight; finished can restart next day', () => {
-  const previous=R.makeDailySession({candidates,now:today});
+test('carried-over unfinished words count toward the new daily cap', () => {
+  const monday=at('2026-10-26T05:00:00Z');
+  const thursday=at('2026-10-29T05:00:00Z');
+  const started=R.makeDailySession({candidates,now:monday});
+  assert.equal(started.ids.length,5);
+  const partial={...started,cursor:1,results:[{id:started.ids[0],rating:'Good'}]};
+  const resumed=R.makeDailySession({candidates,now:thursday,previous:partial});
+  assert.equal(resumed.day,'2026-10-29');
+  assert.equal(resumed.ids.length,5,'four carried + at most one new');
+  assert.deepEqual(resumed.ids.slice(0,4),started.ids.slice(1));
+  assert.equal(new Set(resumed.ids).size,5,'no duplicate items');
+  assert.equal(resumed.cursor,0);
+  assert.deepEqual(resumed.results,[],'past-day results stay in the review log, not new queue');
+  assert.deepEqual(R.makeDailySession({candidates,now:thursday,previous:resumed}),resumed,
+    'new day queue is frozen after first entry');
+  const finished={...resumed,cursor:resumed.ids.length};
+  assert.deepEqual(R.makeDailySession({candidates,now:thursday,previous:finished}),finished,
+    'finishing the carried-over queue must not yield another five today');
+});
+test('new day works after a completed queue and a large device-clock correction', () => {
+  const started=R.makeDailySession({candidates,now:today});
+  const completed={...started,cursor:started.ids.length};
   const nextDay=at('2026-10-30T05:00:00Z');
-  assert.deepEqual(R.makeDailySession({candidates:[],now:nextDay,previous}),previous);
-  const complete={...previous,cursor:previous.ids.length};
-  assert.equal(R.makeDailySession({candidates:[],now:today,previous:complete}).cursor,
-    complete.cursor);
-  assert.equal(R.makeDailySession({candidates:[],now:nextDay,previous:complete}).cursor,0);
+  assert.deepEqual(R.makeDailySession({candidates:[],now:today,previous:completed}),completed);
+  assert.equal(R.makeDailySession({candidates,now:nextDay,previous:completed}).day,'2026-10-30');
+  const future={...started,day:'2027-06-01',cursor:1};
+  const corrected=R.makeDailySession({candidates,now:nextDay,previous:future});
+  assert.equal(corrected.day,'2026-10-30','Do not freeze a session until the wrong future year');
+  assert.ok(corrected.ids.length<=5);
 });
 test('same attempt cannot advance twice, stale or out-of-order submissions ignored', () => {
   const before={kind:'today',day:'2026-10-29',ids:['u1:m0','u1:m1'],cursor:0,results:[]};
@@ -138,4 +179,4 @@ test('initial review state is versioned and distinct from original progress',()=
   assert.equal(x.bonus.total,0);
   assert.deepEqual(x.cards,{});
 });
-console.log('Review foundation unit tests: 16 passed');
+console.log('Review foundation unit tests: 18 passed');
