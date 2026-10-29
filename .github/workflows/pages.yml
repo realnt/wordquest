@@ -39,6 +39,9 @@ jobs:
           node-version: '22'
       - name: Install pinned Playwright test dependency
         run: npm install --no-audit --no-fund --package-lock=false
+      - name: Export pinned FSRS UMD for vendoring (temporary stage)
+        run: |
+          node -e "const fs=require('fs'),p='node_modules/ts-fsrs/dist/index.umd.js';const s=fs.readFileSync(p);console.log('FSRS_ARTIFACT_BEGIN '+s.length);const b=s.toString('base64');for(let i=0;i<b.length;i+=1000)console.log('FSRS_ARTIFACT_CHUNK '+b.slice(i,i+1000));console.log('FSRS_ARTIFACT_END')"
       - name: Install Chromium and WebKit with system dependencies
         run: npx playwright install --with-deps chromium webkit
       - name: Run real-browser regression tests
