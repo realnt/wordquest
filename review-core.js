@@ -17,6 +17,7 @@
   const RATINGS = Object.freeze({ Again: 'Again', Hard: 'Hard', Good: 'Good' });
 
   function asDate(value) {
+    if (value == null || value === '') return null;
     const date = value instanceof Date ? new Date(value.getTime()) : new Date(value);
     return Number.isFinite(date.getTime()) ? date : null;
   }
