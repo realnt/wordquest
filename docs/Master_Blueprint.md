@@ -58,6 +58,22 @@ Game-wide mechanics: ordered mission unlocking, multiple choice, word building, 
 
 **Replay requirement:** Since **v1.5.2**, completed missions reopen in a temporary, explicitly labeled **Practice mode**. Practice attempts, hints and reveals must never add XP, overwrite completed progress, or increase historical mistake totals. On refresh, completed missions return to review mode.
 
+### Approved design for v1.6 — vocabulary retention (in development, not released)
+
+**Design authority:** owner decisions recorded on [Issue #17](https://github.com/realnt/wordquest/issues/17#issuecomment-6490670172) after [Claude's independent review](https://github.com/realnt/wordquest/issues/17#issuecomment-6490568706). **Implementation status:** [draft PR #23](https://github.com/realnt/wordquest/pull/23); none of the following should be represented as released functionality until merged and deployed.
+
+**Learning experience:** add **Today's practice** (at most five eligible target missions per *local calendar day*, across units) and **Review my mistakes** (questions, not pre-opened solutions). Use existing choice and word-building mechanics; do not introduce typed answers, new sentence-generation tasks or Word Vault authoring here (Issue #18). A missed day's unfinished items count toward the next day's five; never give an additional five after resuming. If fewer eligible words exist, show fewer instead of drawing from locked or unseen missions. Composite multi-target missions, such as U1 M23 and U3 M4, remain **one review card per mission**.
+
+**Scheduling and feedback:** use pinned MIT-licensed browser-local **`ts-fsrs@5.4.2`**, with day-based scheduling, retention target 0.9, empty learning/relearning steps and deterministic first-release intervals (fuzz off), subject to verified API tests. Record **one FSRS rating per finished attempt**, not per wrong answer or option tap. Wrong attempt or Reveal → **Again**; correct after opening any English/Chinese hint → **Hard**; first-try correct with no hint → **Good**. **Reading the Chinese translation of the scene/question does not reduce the grade**; comprehension support should not be penalized. No separate confidence-rating control.
+
+**Remembered:** only show a word as remembered after a *real later* first-try, no-hint correct review **and** model stability of at least seven days **and** at least 24 real elapsed hours since observed first learning/baseline. Recompute on a later failure. FSRS stability is an estimate, **not** a promise of future recall; do not count old completions as remembered without observed evidence.
+
+**Experience points:** a word explicitly revealed for 0 mission XP can earn **+25 Review XP once per distinct target word** after a later independent Good. Keep a separate idempotent award ledger and separately label Mission XP vs Review XP. Never rewrite historical per-unit completion, mistake or XP values. Ordinary replay of completed missions stays practice-only and does not rate a card or award points.
+
+**Persistence and reliability:** create independent versioned browser-local `wordquest_review_v1` storage; preserve every existing Unit 1/Units 2–6 key and schema. A completed legacy mission without review history becomes a baseline candidate, without backdating or inventing a rating. Freeze/resume the daily queue, deduplicate target words, and prevent duplicate ratings and rewards on refresh or double-click. Use the **actual current device time** for due checks and local-day selection; a short clock rollback may be guarded (up to about 12 hours), but a large mistaken future jump must never permanently lock reviews. Offline **scheduling** does not guarantee offline **site loading**.
+
+**Navigation and quality:** place a compact Today link in the shared header (including an accessible `📅 N` control on narrow phones), or immediately below it if 375–390 px / 200% zoom reveals crowding. Test behavior with fake dates (including corrections, midnight, missed days and time zones), corrupt and legacy saves, desktop Chromium, mobile WebKit, and unchanged original XP. Store tests in `tests/` and keep the Blueprint as the single source for product rules; no separate Agent Skill is needed for v1.6.
+
 ## 4. Bilingual design
 
 - Default: primary English mission, question, hints, explanations and language stories; show one Chinese passage only when requested.
