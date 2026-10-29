@@ -127,8 +127,9 @@ test('same attempt cannot advance twice, stale or out-of-order submissions ignor
   assert.equal(before.cursor,0);
   assert.equal(done.session.results.length,1);
   assert.equal(R.finishSessionItem(done.session,'u1:m0','Good',today).committed,false);
-  assert.equal(R.finishSessionItem(done.session,'u1:m1','Again',today).committed,true);
-  assert.equal(R.finishSessionItem(done.session,'u1:m1','Again',today).committed,false);
+  const second = R.finishSessionItem(done.session,'u1:m1','Again',today);
+  assert.equal(second.committed,true);
+  assert.equal(R.finishSessionItem(second.session,'u1:m1','Again',today).committed,false);
 });
 test('initial review state is versioned and distinct from original progress',()=>{
   const x=R.emptyReviewState();
