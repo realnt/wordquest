@@ -27,11 +27,16 @@
     const pad = n => String(n).padStart(2, '0');
     return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
   }
+  // This is only a short rollback guard for bookkeeping. Use the actual
+  // device time (not this adjusted value) for local-day and FSRS due checks.
+  // Large rollbacks, e.g. a corrected incorrect future year, must recover.
   function stableTime(value, lastObservedAt) {
     const current = asDate(value);
     if (!current) throw new TypeError('A valid current date is required');
     const previous = lastObservedAt == null ? null : asDate(lastObservedAt);
-    return previous && previous > current ? previous : current;
+    const rollbackMs = previous ? previous.getTime() - current.getTime() : 0;
+    const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
+    return rollbackMs > 0 && rollbackMs <= TWELVE_HOURS_MS ? previous : current;
   }
   function missionId(unit, index) {
     if (!Number.isInteger(unit) || unit < 1 || unit > 6 ||
@@ -79,11 +84,17 @@
     });
   }
   function gradeAttempt({ finished, correct, revealed = false, wrongCount = 0,
-                          hintsUsed = 0, chineseAssisted = false } = {}) {
+                          hintsUsed = 0 } = {}) {
     if (!finished) return null;
     if (!correct && !revealed) return null; // unresolved: no FSRS review
-    if (revealed || wrongCount > 0) return RATINGS.Again;
-    if (hintsUsed > 0 || chineseAssisted) return RATINGS.Hard;
+    const count = value => {
+      const n = Number(value);
+      return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+    };
+    if (revealed || count(wrongCount) > 0) return RATINGS.Again;
+    // Chinese translations of the scene/question support comprehension and
+    // never lower a Good grade; opening a hint in either language counts.
+    if (count(hintsUsed) > 0) return RATINGS.Hard;
     return RATINGS.Good;
   }
   // FSRS is responsible for calculating due; this function ONLY selects already
@@ -97,15 +108,16 @@
       if (!candidate || typeof candidate.id !== 'string' || !candidate.wordKey) continue;
       const card = cards && Object.prototype.hasOwnProperty.call(cards, candidate.id)
         ? cards[candidate.id] : null;
-      if (card) {
-        if (typeof card !== 'object' || !card || !asDate(card.due)) continue;
-        if (card.lastRatedLocalDay && card.lastRatedLocalDay >= day) continue;
-        if (localDay(card.due) > day) continue;
-      }
+      // Invalid/missing due dates are treated like unscheduled baseline cards;
+      // never make a completed word disappear from review permanently.
+      const due = card && typeof card === 'object' ? asDate(card.due) : null;
+      if (card && typeof card === 'object' &&
+          card.lastRatedLocalDay && card.lastRatedLocalDay >= day) continue;
+      if (due && localDay(due) > day) continue;
       clean.push({
         ...candidate,
-        priority: card ? 0 : 1,
-        dueTime: card ? asDate(card.due).getTime() : Number.POSITIVE_INFINITY
+        priority: due ? 0 : 1,
+        dueTime: due ? due.getTime() : Number.POSITIVE_INFINITY
       });
     }
     clean.sort((a, b) => a.priority - b.priority || a.dueTime - b.dueTime ||
@@ -120,21 +132,34 @@
     return limit ? selected : [];
   }
   function makeDailySession({ candidates = [], cards = {}, now, previous = null } = {}) {
-    const day = localDay(now);
-    if (previous && previous.kind === 'today' && Array.isArray(previous.ids) &&
-        Array.isArray(previous.results) && Number.isInteger(previous.cursor) &&
-        previous.cursor >= 0 && previous.cursor <= previous.ids.length) {
-      // An unfinished queue must remain resumable even across midnight.
-      // A finished queue stays finished on the same day or on clock rollback.
-      if (previous.cursor < previous.ids.length || previous.day >= day) {
-        return { ...previous, ids: [...previous.ids], results: [...previous.results] };
-      }
+    const day = localDay(now); // Real device day, not stableTime's short guard.
+    const validPrevious = previous && previous.kind === 'today' &&
+      typeof previous.day === 'string' && Array.isArray(previous.ids) &&
+      Array.isArray(previous.results) && Number.isInteger(previous.cursor) &&
+      previous.cursor >= 0 && previous.cursor <= previous.ids.length;
+    if (validPrevious && previous.day === day) {
+      // Re-entering Today must not create a second batch on this day.
+      return { ...previous, ids: [...previous.ids], results: [...previous.results] };
     }
-    return {
-      kind: 'today', day,
-      ids: selectToday({ candidates, cards, now }),
-      cursor: 0, results: []
-    };
+
+    const known = new Map(candidates.filter(c => c && typeof c.id === 'string' &&
+      c.wordKey).map(c => [c.id, c]));
+    const carried = validPrevious
+      ? previous.ids.slice(previous.cursor).filter(id => known.has(id)) : [];
+    const nextDue = selectToday({ candidates, cards, now });
+    const ids = [], seenWords = new Set();
+    for (const id of carried.concat(nextDue)) {
+      const word = known.get(id);
+      if (!word || seenWords.has(word.wordKey)) continue;
+      // On a large clock correction, rebase the session to the real day.
+      // A card already rated on the actual day must not be rated again.
+      const card = cards && cards[id];
+      if (card && card.lastRatedLocalDay >= day) continue;
+      seenWords.add(word.wordKey);
+      ids.push(id);
+      if (ids.length >= MAX_DAILY) break;
+    }
+    return { kind: 'today', day, ids, cursor: 0, results: [] };
   }
   function finishSessionItem(session, id, rating, finishedAt) {
     if (!session || !Array.isArray(session.ids) || !Array.isArray(session.results) ||
