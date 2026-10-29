@@ -2,7 +2,7 @@
 
 **从教材学习需求到可持续维护的双语英语闯关网站**  
 **GitHub：** https://github.com/realnt/wordquest  
-**文档基线：** `main` 为 **v1.5.2**（[PR #9](https://github.com/realnt/wordquest/pull/9) 于 2026 年 10 月 21 日合并）  
+**文档基线：** `main` 为 **v1.5.4**（[PR #21](https://github.com/realnt/wordquest/pull/21)），此前为 v1.5.3（[PR #20](https://github.com/realnt/wordquest/pull/20)）和 v1.5.2（[PR #9](https://github.com/realnt/wordquest/pull/9) 于 2026 年 10 月 21 日合并）  
 **Cloudflare 正式网址：** https://wordquest.orbitlab.workers.dev/  
 **GitHub Pages：** https://realnt.github.io/wordquest/  
 **配套文档：** [项目总蓝图](Master_Blueprint.md) · [English Development Guide](Development_Guide_EN.md) · [AI 协作流程](AI_COLLABORATION.md)
@@ -48,6 +48,8 @@ Word Quest 不是一次性生成的网站，而是逐步通过学生使用体验
 | v1.5.0 | 提取公共页头/页脚 `site-shell.js`，统一公共设计系统 `site.css` |
 | **v1.5.1** | U1–U6 统一使用 `quest.js` 和 `quest.css`，U1 内容仍独立存放，旧存档兼容 |
 | **v1.5.2** | [PR #9](https://github.com/realnt/wordquest/pull/9)（2026 年 10 月 21 日已合并）：修复已完成关卡重玩、增加内容校验和 Playwright 浏览器回归测试 |
+| **v1.5.3** | [PR #20](https://github.com/realnt/wordquest/pull/20)：选项稳定随机排序、地图不再泄露答案、重复点错不再扣次数、所有单元“显示答案”均为 0 XP、页面语言标注 |
+| **v1.5.4** | [PR #21](https://github.com/realnt/wordquest/pull/21)：22 个选择题改用更可信的同类干扰项；泄露答案的关卡标题与中文译文已改写；新增答案完整性及中文释义检查 |
 
 **工程方法上的关键选择：**没有因为页面变复杂就全面重写成 React 应用，而是先保证已有功能与学习进度，再通过小型 Pull Request 逐步统一结构。这种方式也方便日后更换开发者或由 ChatGPT / Codex 继续维护。
 
@@ -209,7 +211,7 @@ py -m http.server 8080
 
 在浏览器打开 **http://localhost:8080/**。推荐 HTTP 模式而不是直接双击本地 HTML，因为它与线上静态资源的加载方式更接近。
 
-### 当前 `main`（v1.5.2）的测试方法
+### 当前 `main`（v1.5.4）的测试方法
 
 先运行静态检查、单元测试及全部关卡内容检查：
 

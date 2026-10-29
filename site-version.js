@@ -1,7 +1,7 @@
 /* Single version source for every Word Quest page. */
 (function(){
   'use strict';
-  const VERSION='1.5.2';
+  const VERSION='1.5.4';
   const root=document.getElementById('app')||document.getElementById('root')||document.body;
   function mark(){
     const brand=document.querySelector('.navline .brand, .top .brand');

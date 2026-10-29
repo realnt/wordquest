@@ -1,7 +1,7 @@
 {
   "name": "wordquest",
   "private": true,
-  "version": "1.5.2",
+  "version": "1.5.4",
   "description": "Word Quest browser regression tests",
   "scripts": {
     "test:browser": "playwright test",
