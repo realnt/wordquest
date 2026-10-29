@@ -5,6 +5,9 @@ const S = require('../review-scheduler.js');
 const M = require('../review-memory.js');
 const C = require('../review-core.js');
 const upstream = require('../vendor/ts-fsrs-5.4.2.umd.js');
+const vm = require('node:vm');
+const fs = require('node:fs');
+const path = require('node:path');
 const now = new Date('2026-10-29T04:00:00.000Z');
 const delayed = new Date('2026-10-31T04:00:00.000Z');
 const word = {unit:1,index:0,word:'Solar Panel',originalXP:0,misses:3};
@@ -32,6 +35,12 @@ test('actual pinned FSRS UMD works without network',()=>{
   assert.equal(first.log.review,now.toISOString());
 });
 
+test('the same UMD bundle exposes FSRS in a plain browser-like global context',()=>{
+  const source=fs.readFileSync(path.join(__dirname,'..','vendor','ts-fsrs-5.4.2.umd.js'),'utf8');
+  const context={}; vm.createContext(context); vm.runInContext(source,context);
+  assert.equal(typeof context.FSRS.fsrs,'function');
+  assert.equal(typeof context.FSRS.createEmptyCard,'function');
+});
 test('FSRS full card round-trips Date values and rejects invalid state',()=>{
   const original=S.next(null,now,'Good').card;
   const restored=S.hydrate(JSON.parse(JSON.stringify(original)));
@@ -132,6 +141,17 @@ test('future clock incorrectly saved cannot lock review until next year',()=>{
   assert.equal(M.recordReview(st,{...word,...good,originalXP:100,attemptId:'clock:1',mode:'today'},corrected).saved,true);
 });
 
+test('corrupt future day marker without a review timestamp also recovers',()=>{
+  const st=memory();
+  M.seedFirstCompletion(st,{...word,...good,originalXP:100},now);
+  const state=M.read(st).state;
+  state.cards['u1:m0'].lastReviewAt=null;
+  state.cards['u1:m0'].lastRatedLocalDay='2027-06-01';
+  st.setItem(C.REVIEW_KEY,JSON.stringify(state));
+  const updated=M.startToday(st,[candidate],new Date('2026-10-30T05:00:00Z'));
+  assert.deepEqual(updated.recovered,['u1:m0']);
+  assert.equal(M.read(st).state.cards['u1:m0'].lastRatedLocalDay,null);
+});
 test('corrupt due date is rescheduled as a baseline instead of lost',()=>{
   const st=memory();
   M.seedFirstCompletion(st,{...word,...good,originalXP:100},now);
