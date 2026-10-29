@@ -11,6 +11,7 @@
 | Implementation, tests and deployment procedure | [English Development Guide](Development_Guide_EN.md) and [中文开发指南](Development_Guide_ZH.md) |
 | Current assignments, acceptance criteria and handoffs | [GitHub Issues](https://github.com/realnt/wordquest/issues) |
 | Proposed changes, diffs, independent review and CI | [GitHub pull requests](https://github.com/realnt/wordquest/pulls) |
+| Release plan and work status | [Milestones](https://github.com/realnt/wordquest/milestones) and the owner's [Word Quest project board](https://github.com/users/realnt/projects/2) |
 
 The repository is **currently public**; code, issues and discussions may be visible to everyone. Do not place private material or credentials in them. If visibility changes, recheck connected-app permissions and GitHub Pages configuration.
 
@@ -24,6 +25,15 @@ The repository is **currently public**; code, issues and discussions may be visi
 6. Only the **owner** approves a merge. Run CI, merge after approval, then validate external deployments separately.
 
 **Single-writer rule:** Only one active writer owns a branch at any given time. Before editing, confirm the branch head and current `main`; update a stale branch before making further changes, then record the reviewed commit. For a handover, the owner records the **new writer, previous writer and branch-head SHA** in the Issue or PR. The previous writer stops pushing; the new writer verifies that SHA before making changes. Separate branches are required for simultaneous alternatives.
+
+## Tracking work
+
+- **Milestones** group Issues by release (e.g. `v1.5.3`). Every planned Issue belongs to one; unscheduled Issues have none.
+- **Labels:** `writer: claude` or `writer: chatgpt` records the assigned writer (step 2); `risk: high`, `risk: medium` or `risk: low` records the review level below. Assistants keep these up to date on Issues and PRs they work on.
+- **Board:** the existing [Word Quest project board](https://github.com/users/realnt/projects/2) belongs to the owner's GitHub account and is linked to this repository. It is a **view** over these Issues and PRs, not a second backlog: don't create another board, and don't track work that exists only on the board.
+- **Board columns:** Backlog → Ready (scoped, writer assigned) → In progress (branch exists) → In review (PR open for review) → Done.
+- **Who moves cards:** the owner moves cards to Ready, In progress and In review. **If the board's workflows are enabled**, closed Issues and merged PRs move to Done automatically; otherwise the owner moves them. Assistants may not be able to edit the board.
+- **Which record wins:** the Issue or PR state, its labels and milestone are authoritative. A card's column is never more authoritative than the item's actual state. If they disagree, trust the Issue/PR and tell the owner.
 
 ## Review depth by risk
 
