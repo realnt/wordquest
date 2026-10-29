@@ -67,7 +67,11 @@
       if (!object(card)) continue;
       const recent = date(card.lastReviewAt);
       const first = date(card.firstSeenAt);
-      if (recent && recent.getTime() > now.getTime() + RECOVERY_WINDOW_MS) {
+      const futureDay = typeof card.lastRatedLocalDay === 'string' &&
+        /^\d{4}-\d{2}-\d{2}$/.test(card.lastRatedLocalDay) &&
+        card.lastRatedLocalDay > core.localDay(new Date(now.getTime() + RECOVERY_WINDOW_MS));
+      if ((recent && recent.getTime() > now.getTime() + RECOVERY_WINDOW_MS) ||
+          futureDay) {
         // Real device clock was corrected after a far-future rating. Its FSRS
         // due/lastRatedLocalDay must not lock this card away until that year.
         cards[id] = {...card, fsrs:null, due:null, lastReviewAt:null,
