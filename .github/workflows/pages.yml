@@ -20,6 +20,8 @@ jobs:
           node --check site-shell.js
           node tests/test_layout.js
           node tests/test_engine.js
+          node --check review-core.js
+          node tests/test_review_core.js
           node tests/check_content.js
           node --check content.js
           node --check speech.js
