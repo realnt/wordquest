@@ -63,3 +63,21 @@
 }
 /* Homepage details previously embedded in index.html. */
 .overview-wide{display:flex;gap:18px;align-items:center;flex-wrap:wrap}.overview-wide strong{font-size:20px}.about a{white-space:normal}.badge{font-size:11px;color:#2c7066;background:#e3f5ef;border-radius:8px;padding:5px 8px;font-weight:800}
+
+/* v1.6: Today is a compact header action, not a fourth unit nav tab. */
+.wq-today-link{margin-left:auto;display:inline-flex;align-items:center;gap:6px;
+ min-height:38px;padding:8px 11px;background:#e6f6f0;color:#0c6758;
+ border:1px solid #b4ddd1;border-radius:12px;text-decoration:none;
+ white-space:nowrap;font-size:13px;font-weight:800}
+.wq-today-link:hover{background:#d4efe3;color:#095d51}
+.wq-today-link:focus-visible{outline:3px solid var(--wq-focus);outline-offset:3px}
+.wq-today-short{display:none}
+.wq-today-count{min-width:18px;text-align:center;background:white;border-radius:99px;
+ padding:2px 5px;font-size:11px;font-variant-numeric:tabular-nums}
+@media(max-width:600px){
+ .wq-today-link{min-height:34px;padding:6px 9px;font-size:12px}
+ .wq-today-long{display:none}
+ .wq-today-short{display:inline}
+ .wq-nav{order:3;width:100%}
+ .wq-header .speech-settings-host{order:4}
+}

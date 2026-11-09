@@ -250,3 +250,16 @@ The current project is suitable for iterative maintenance. Prioritize more rigor
 ---
 
 **Project principle:** Help learners reason in English, discover an accurate word connection, and move forward with minimal friction.
+
+
+## v1.6 review implementation (draft PR #23 — not released)
+
+The existing static game now has a proposed review layer: `review.html`, `review-app.js`, `review-data.js`, `review-nav.js`, `review.css`, `review-core.js`, `review-scheduler.js`, `review-memory.js`, and the exact pinned, MIT-licensed `vendor/ts-fsrs-5.4.2.umd.js`.
+
+- Main-game `quest.js` seeds FSRS **only on newly earned first completions** after a successful legacy progress save. Replay never seeds a new card. No old game or voice key is changed by review.
+- The shared read-only data adapter indexes *completed* missions across all six units, retaining Unit 1's legacy field mapping. Today sessions contain **at most five distinct target words per local day** and resume safely. Mistake rounds are separate, resumable, and do not reset the daily cap.
+- The review page uses the original content, stable option shuffle, existing choice/build/hint concepts and immediate explanations. Wrong/reveal → Again; hint → Hard; first correct without hints → Good. Reading ordinary Chinese translation does not lower a rating.
+- `wordquest_review_v1` holds FSRS cards, dates, review attempts, daily and mistakes queues, remembered evidence, and the separately displayed one-time +25 Review XP ledger.
+- Test via `npm run test:unit` and `npm run test:browser`; the browser suite includes `tests/browser/review.spec.js`. Mobile WebKit simulation does not verify actual iPhone voices. The static site is not guaranteed offline without an explicit service worker/cache.
+- **Not shipped:** v1.6 remains a draft until independent review, owner approval, merge and both GitHub/Cloudflare deployment verification.
+
