@@ -62,7 +62,12 @@ test('Today: previously completed mission opens a question and resumes after ref
  expect(state.review.session.ids).toEqual(['u2:m0']);
  expect(state.unit.completed['0']).toBe(100);
  await page.goto('/review.html?mode=today&auto=1');
- await expect(page.getByText('Nothing is due right now.',{exact:false})).toBeVisible();
+ await expect(page.getByText('Review finished')).toBeVisible();
+ const again=await page.evaluate(()=>JSON.parse(localStorage.getItem('wordquest_review_v1')));
+ expect(again.session.ids).toEqual(['u2:m0']);
+ expect(again.session.cursor).toBe(1);
+ expect(again.cards['u2:m0'].reviewCount).toBe(1);
+ await expect(page.locator('[data-review-count]')).toHaveText('0');
 });
 
 test('Review my mistakes: same-day repeat is practice-only and preserves original mistakes',async({page})=>{
