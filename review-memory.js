@@ -29,18 +29,21 @@
       (v.session === null || object(v.session)) &&
       object(v.bonus) && object(v.bonus.awardedByWord) &&
       Number.isSafeInteger(v.bonus.total) && v.bonus.total >= 0 &&
-      (!has(v,'attempts') || object(v.attempts));
+      (!has(v,'attempts') || object(v.attempts)) &&
+      (!has(v,'mistakesSession') || v.mistakesSession === null || object(v.mistakesSession));
   }
   function read(storage) {
     let raw;
     try { raw = storage.getItem(core.REVIEW_KEY); }
     catch (_) { return { ok:false, reason:'storage-unavailable' }; }
-    if (raw == null) return {ok:true, state:{...core.emptyReviewState(),attempts:{}}};
+    if (raw == null) return {ok:true, state:{...core.emptyReviewState(),attempts:{},
+      mistakesSession:null}};
     let state;
     try { state = JSON.parse(raw); }
     catch (_) { return {ok:false, reason:'corrupt-review-data'}; }
     if (!validState(state)) return {ok:false, reason:'unsupported-or-corrupt-review-data'};
-    return {ok:true, state:{...state, attempts:state.attempts || {}}};
+    return {ok:true, state:{...state, attempts:state.attempts || {},
+      mistakesSession:state.mistakesSession || null}};
   }
   function transact(storage, operation) {
     const snapshot = read(storage);
@@ -115,6 +118,38 @@
         details:{recovered}};
     });
   }
+
+  // A separate queue means "Review mistakes" never discards an unfinished Today
+  // session or resets the five-per-local-day cap.
+  function startMistakes(storage, candidates, when) {
+    const now=date(when);
+    if(!now || !Array.isArray(candidates)) return {ok:false,reason:'invalid-mistakes-session'};
+    return transact(storage,raw=>{
+      const {state,recovered}=prepare(raw,now);
+      const previous=state.mistakesSession;
+      const unfinished=previous && previous.kind==='mistakes' &&
+        Array.isArray(previous.ids) && Number.isInteger(previous.cursor) &&
+        previous.cursor < previous.ids.length;
+      if(unfinished && !recovered.length)
+        return {changed:false,reason:'session-unchanged'};
+      const known = new Set(candidates.filter(c=>c && c.misses>0).map(c=>c.id));
+      const sorted=candidates.filter(c=>c && c.misses>0 && known.has(c.id))
+        .sort((a,b)=>b.misses-a.misses || a.id.localeCompare(b.id));
+      const seen=new Set(), ids=[];
+      for(const c of sorted) {
+        if(!c.wordKey || seen.has(c.wordKey))continue;
+        seen.add(c.wordKey);ids.push(c.id);
+      }
+      // Every launch has its own token so legitimate next-day review attempts
+      // cannot accidentally reuse a completed session's attempt ID.
+      const token='mistakes:'+now.getTime()+':'+(previous?.generation||0)+1;
+      const session={kind:'mistakes',day:core.localDay(now),ids,cursor:0,
+        results:[],generation:(previous?.generation||0)+1,token};
+      return {changed:true,state:{...state,mistakesSession:session,
+        lastObservedAt:now.toISOString()},details:{recovered}};
+    });
+  }
+
   function recordReview(storage, input, when) {
     const now = date(when);
     if (!now) throw new TypeError('Invalid review timestamp');
@@ -129,13 +164,29 @@
       const {state,recovered}=prepare(raw,now);
       if (has(state.attempts,input.attemptId)) return {changed:false,reason:'already-rated'};
       const prev = has(state.cards,candidate.id) ? state.cards[candidate.id] : null;
-      if (prev && prev.lastRatedLocalDay && prev.lastRatedLocalDay >= core.localDay(now))
-        return {changed:false,reason:'already-rated-today'};
       let nextSession=state.session;
-      if (input.mode==='today') {
-        const step = core.finishSessionItem(nextSession,candidate.id,rating,now);
+      let nextMistakesSession=state.mistakesSession;
+      if(input.mode==='today' || input.mode==='mistakes') {
+        const current=input.mode==='today'?nextSession:nextMistakesSession;
+        if(!current || current.kind!==input.mode)
+          return {changed:false,reason:'no-active-review-session'};
+        const step=core.finishSessionItem(current,candidate.id,rating,now);
         if (!step.committed) return {changed:false,reason:'not-current-session-item'};
-        nextSession = step.session;
+        if(input.mode==='today') nextSession=step.session;
+        else nextMistakesSession=step.session;
+      }
+      const ratedToday=!!(prev && prev.lastRatedLocalDay &&
+        prev.lastRatedLocalDay >= core.localDay(now));
+      if(ratedToday && input.mode==='today')
+        return {changed:false,reason:'already-rated-today'};
+      if(ratedToday && input.mode==='mistakes'){
+        // Useful same-day mistake practice is allowed, but cannot create a
+        // second FSRS rating, "remembered" evidence or Review XP.
+        const attempts={...state.attempts,[input.attemptId]:{
+          id:candidate.id,rating,at:now.toISOString(),practiceOnly:true}};
+        return {changed:true,state:{...state,mistakesSession:nextMistakesSession,
+          attempts,lastObservedAt:now.toISOString()},details:{
+            rating,earnedReviewXP:0,practiceOnly:true,recovered}};
       }
       const previousFSRS = prev && scheduler.hydrate(prev.fsrs) ? prev.fsrs : null;
       const result = scheduler.next(previousFSRS,now,rating);
@@ -165,9 +216,11 @@
       const attempts={...state.attempts,[input.attemptId]:{
         id:candidate.id,rating,at:now.toISOString()}};
       return {changed:true,state:{...state,cards:{...state.cards,[candidate.id]:card},
-        session:nextSession,attempts,bonus:nextBonus,lastObservedAt:now.toISOString()},
+        session:nextSession,mistakesSession:nextMistakesSession,
+        attempts,bonus:nextBonus,lastObservedAt:now.toISOString()},
       details:{rating,earnedReviewXP:eligibleBonus?BONUS_XP:0,recovered}};
     });
   }
-  return Object.freeze({BONUS_XP,read,seedFirstCompletion,startToday,recordReview});
+  return Object.freeze({BONUS_XP,read,seedFirstCompletion,startToday,
+    startMistakes,recordReview});
 });
