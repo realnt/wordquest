@@ -180,4 +180,44 @@ test('write failure must not pretend it saved',()=>{
   assert.equal(response.ok,false);
   assert.equal(response.reason,'storage-write-failed');
 });
+
+test('separate mistake queue resumes and never destroys Today session',()=>{
+ const st=memory(),more={unit:2,index:1,word:'breathe',originalXP:50,misses:2};
+ M.seedFirstCompletion(st,{...word,...reveal},now);
+ M.seedFirstCompletion(st,{...more,...good},now);
+ const candidates=[candidate,{...more,id:'u2:m1',wordKey:'breathe'}];
+ M.startToday(st,candidates,delayed);
+ const today=JSON.stringify(M.read(st).state.session);
+ let started=M.startMistakes(st,candidates,delayed);
+ assert.equal(started.saved,true);
+ assert.deepEqual(started.state.mistakesSession.ids,['u1:m0','u2:m1']);
+ assert.equal(JSON.stringify(started.state.session),today);
+ const paused=M.startMistakes(st,candidates,delayed);
+ assert.equal(paused.saved,false);
+ assert.equal(JSON.stringify(M.read(st).state.session),today);
+ const r=M.recordReview(st,{...word,...good,attemptId:'mistakes:start1',mode:'mistakes'},delayed);
+ assert.equal(r.saved,true);
+ assert.equal(r.earnedReviewXP,25);
+ assert.equal(M.read(st).state.mistakesSession.cursor,1);
+ assert.equal(JSON.stringify(M.read(st).state.session),today);
+ assert.equal(M.recordReview(st,{...word,...good,attemptId:'mistakes:start1',mode:'mistakes'},delayed).saved,false);
+});
+
+test('same-day mistakes can be practiced but never double-rate FSRS',()=>{
+ const st=memory();
+ M.seedFirstCompletion(st,{...word,...reveal},now);
+ M.startMistakes(st,[candidate],now);
+ const before=M.read(st).state.cards['u1:m0'].fsrs;
+ const r=M.recordReview(st,{...word,...good,attemptId:'mistakes:same-day',mode:'mistakes'},now);
+ assert.equal(r.saved,true);
+ assert.equal(r.practiceOnly,true);
+ assert.equal(r.earnedReviewXP,0);
+ const saved=M.read(st).state;
+ assert.deepEqual(saved.cards['u1:m0'].fsrs,before);
+ assert.equal(saved.cards['u1:m0'].reviewCount,0);
+ assert.equal(saved.bonus.total,0);
+ assert.equal(saved.mistakesSession.cursor,1);
+ assert.equal(M.recordReview(st,{...word,...good,attemptId:'mistakes:same-day',mode:'mistakes'},now).saved,false);
+});
+
 console.log('FSRS persistence suite complete.');
