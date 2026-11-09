@@ -142,7 +142,7 @@
       }
       // Every launch has its own token so legitimate next-day review attempts
       // cannot accidentally reuse a completed session's attempt ID.
-      const token='mistakes:'+now.getTime()+':'+(previous?.generation||0)+1;
+      const token='mistakes:'+now.getTime()+':'+String((previous?.generation||0)+1);
       const session={kind:'mistakes',day:core.localDay(now),ids,cursor:0,
         results:[],generation:(previous?.generation||0)+1,token};
       return {changed:true,state:{...state,mistakesSession:session,
@@ -166,7 +166,7 @@
       const prev = has(state.cards,candidate.id) ? state.cards[candidate.id] : null;
       let nextSession=state.session;
       let nextMistakesSession=state.mistakesSession;
-      if(input.mode==='today' || input.mode==='mistakes') {
+      if(input.mode==='today' || (input.mode==='mistakes' && nextMistakesSession)) {
         const current=input.mode==='today'?nextSession:nextMistakesSession;
         if(!current || current.kind!==input.mode)
           return {changed:false,reason:'no-active-review-session'};
@@ -178,6 +178,8 @@
       const ratedToday=!!(prev && prev.lastRatedLocalDay &&
         prev.lastRatedLocalDay >= core.localDay(now));
       if(ratedToday && input.mode==='today')
+        return {changed:false,reason:'already-rated-today'};
+      if(ratedToday && input.mode==='mistakes' && !nextMistakesSession)
         return {changed:false,reason:'already-rated-today'};
       if(ratedToday && input.mode==='mistakes'){
         // Useful same-day mistake practice is allowed, but cannot create a
