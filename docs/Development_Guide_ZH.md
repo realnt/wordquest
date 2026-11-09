@@ -274,3 +274,16 @@ Playwright 方案覆盖所有六个单元、导航、关卡重玩、存档、版
 ---
 
 **项目初心：**让学生在英文中推理，发现一个真实且容易记住的词语联系，然后自然地进入下一关。
+
+
+## v1.6 复习系统（PR #23 开发草案，尚未上线）
+
+新增（仍在功能分支中）的模块包括 `review.html`、`review-app.js`、`review-data.js`、`review-nav.js`、`review.css`、`review-core.js`、`review-scheduler.js`、`review-memory.js`，以及固定版本、MIT 授权的 `vendor/ts-fsrs-5.4.2.umd.js`。
+
+- 游戏首次完成新任务、原始进度存储成功之后，`quest.js` 才初始化 FSRS 卡片；重玩不重复初始化、不增加旧经验值。
+- “Today's practice” 每个本地自然日最多五个已完成且到期的目标任务，跨单元、可中断继续；“Review my mistakes” 使用独立队列，不重置每日五题上限。
+- 复习界面继续利用原有题目数据、英文优先、中文辅助、选词/拼词、两级提示和即时解答。答错或揭晓 → Again；看提示 → Hard；首答正确且没看提示 → Good。普通中文翻译不会导致降级。
+- 新的 `wordquest_review_v1` 单独保存 FSRS 卡片、到期时间、复习记录、队列、掌握状态和一次性的 +25 Review XP 记录；六个单元原来的存档结构不改变。
+- 使用 `npm run test:unit` 与 `npm run test:browser` 验证，新增 `tests/browser/review.spec.js`。WebKit 模拟不是实际 iPhone 发音测试；没有独立缓存方案就不能保证完全离线。
+- **尚未发布：**仍需 Claude 独立审核、用户合并批准、iPhone Safari 验证及 GitHub/Cloudflare 部署核验。
+
