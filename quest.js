@@ -75,7 +75,8 @@ function store(){
      localStorage.setItem(KEY,JSON.stringify(legacy));
      originalFirstState=legacy;
    }else localStorage.setItem(KEY,JSON.stringify(state));
- }catch(e){}
+   return true;
+ }catch(e){return false;}
 }
 function completeCount(){return Object.keys(state.completed).length}
 function progress(){return Math.round(100*completeCount()/puzzles.length)}
@@ -110,13 +111,14 @@ function map(){
   return `<section class="panel pad"><div class="row"><h2 style="margin:0">Mission map · 闯关地图</h2><span class="pill">${completeCount()}/${puzzles.length}</span></div><p class="footnote">Solve missions in order. Finished missions can be replayed. / 按顺序通关，已完成的任务可以重玩。</p>${groups}<div class="divider"></div><button class="btn ghost" data-action="restart">Restart this unit / 重置本单元</button></section>`;
 }
 function vault(){const q=rt.query.trim().toLowerCase();const results=glossary.filter(([w,z])=>!q||`${w} ${z}`.toLowerCase().includes(q));return `<section class="panel pad"><div class="row"><h2 style="margin:0">Word Vault · Unit ${unit}</h2><span class="pill">${glossary.length} entries</span></div><p class="footnote">Textbook vocabulary, not all independent missions. Verified against the unit word list (${info.source}). Units use selected words in original scenarios, and some explanations contain related expansion words.</p><input type="search" class="search" id="search" placeholder="Search textbook words or Chinese meanings..." value="${esc(rt.query)}" aria-label="Search vocabulary"><div class="vaultgrid" id="vault-results">${results.map(([w,z])=>`<div class="vword"><div class="vault-pron-row"><b lang="en">${esc(w)}</b>${vaultSpeak(w)}</div><small lang="zh-CN">${esc(z)}</small></div>`).join('')||'<p>No matches.</p>'}</div></section>`}
-function results(){const missed=Object.keys(state.mistakes).map(Number).filter(x=>state.mistakes[x]>0);return `<section class="panel pad"><div class="success-banner"><div style="font-size:57px">🏆</div><div class="eyebrow">UNIT ${unit} COMPLETE</div><h2>You're a Word Explorer!</h2><p>${puzzles.length} missions completed. / 本单元 ${puzzles.length} 关完成。</p><div class="stats" style="justify-content:center"><div class="pill">⭐ ${state.points} XP</div><div class="pill">✓ ${completeCount()} solved</div><div class="pill">📖 ${glossary.length} textbook terms</div></div></div><div class="divider"></div><h3>Words to revisit · 值得复习</h3>${missed.length?`<div class="recap">${missed.map(n=>`<button class="btn ghost small" data-action="jump" data-n="${n}">${esc(puzzles[n].word)} ↺</button>`).join('')}</div>`:'<p class="footnote">No mistakes recorded. Try again with fewer clues!</p>'}<div class="actions"><a class="btn" href="index.html">Explore other units</a><button class="btn alt" data-action="view" data-view="map">Replay missions</button><button class="btn ghost" data-action="view" data-view="vault">Open vocabulary</button></div></section>`}
+function results(){const missed=Object.keys(state.mistakes).map(Number).filter(x=>state.mistakes[x]>0);return `<section class="panel pad"><div class="success-banner"><div style="font-size:57px">🏆</div><div class="eyebrow">UNIT ${unit} COMPLETE</div><h2>You're a Word Explorer!</h2><p>${puzzles.length} missions completed. / 本单元 ${puzzles.length} 关完成。</p><div class="stats" style="justify-content:center"><div class="pill">⭐ ${state.points} XP</div><div class="pill">✓ ${completeCount()} solved</div><div class="pill">📖 ${glossary.length} textbook terms</div></div></div><div class="divider"></div><h3>Words to revisit · 值得复习</h3>${missed.length?`<div class="recap">${missed.map(n=>`<button class="btn ghost small" data-action="jump" data-n="${n}">${esc(puzzles[n].word)} ↺</button>`).join('')}</div>`:'<p class="footnote">No mistakes recorded. Try again with fewer clues!</p>'}<div class="actions">${missed.length?'<a class="btn alt" href="review.html?mode=mistakes&amp;auto=1">↺ Review my mistakes</a>':''}<a class="btn" href="index.html">Explore other units</a><button class="btn alt" data-action="view" data-view="map">Replay missions</button><button class="btn ghost" data-action="view" data-view="vault">Open vocabulary</button></div></section>`}
 function draw(){document.title='Word Quest · Unit '+unit+' · '+info.title;$.innerHTML=`<main class="container wq-page">${header()}${hero()}<div class="main-grid"><div>${state.tab==='vault'?vault():state.tab==='map'?map():state.tab==='results'?results():play()}</div>${side()}</div>${window.WordQuestShell.footer()}</main>`;
  if(state.tab==='vault'){const input=$.querySelector('#search');input.addEventListener('input',()=>{rt.query=input.value;let results=glossary.filter(([w,z])=>`${w} ${z}`.toLowerCase().includes(rt.query.trim().toLowerCase()));$.querySelector('#vault-results').innerHTML=results.map(([w,z])=>`<div class="vword"><div class="vault-pron-row"><b lang="en">${esc(w)}</b>${vaultSpeak(w)}</div><small lang="zh-CN">${esc(z)}</small></div>`).join('')||'<p>No matches.</p>';});}
 }
 function mark(revealed=false){
  const n=state.current;
- if(!rt.practice&&state.completed[n]===undefined){
+ const firstCompletion=!rt.practice&&state.completed[n]===undefined;
+ if(firstCompletion){
    const deduction=rt.tries*25;
    const points=revealed?0:Math.max(20,100-rt.hint*20-deduction);
    state.completed[n]=points;
@@ -125,7 +127,20 @@ function mark(revealed=false){
  }
  rt.answer=true;
  rt.revealedSolution=Boolean(revealed);
- if(!rt.practice)store();
+ if(!rt.practice){
+   const saved=store();
+   // Only a NEW original completion seeds FSRS. Replay and revisits do not
+   // create extra ratings or change original Mission XP / mistakes.
+   if(saved&&firstCompletion&&window.WordQuestReviewMemory){
+     try{
+       window.WordQuestReviewMemory.seedFirstCompletion(localStorage,{
+         unit,index:n,word:puzzles[n].word,originalXP:state.completed[n],
+         misses:state.mistakes[n]||0,finished:true,correct:!revealed,
+         revealed:Boolean(revealed),wrongCount:rt.tries,hintsUsed:rt.hint
+       },new Date());
+     }catch(_e){/* game completion must never depend on optional review data */}
+   }
+ }
  draw();
 }
 function wrong(){
