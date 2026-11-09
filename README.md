@@ -1,6 +1,6 @@
 # Word Quest — Grade 7 Semester 1
 
-**Version:** 1.5.4 · **6 units** · **109 missions** · **265 textbook vocabulary/expression entries**
+**Version:** 1.6.0 (draft PR #23, not released) · **6 units** · **109 missions** · **265 textbook vocabulary/expression entries**
 
 Interactive English vocabulary and etymology game aligned with Shanghai 五四制 2024 Grade 7.
 
@@ -42,6 +42,19 @@ These three version-controlled Markdown documents are the **canonical project re
 - **22 multiple-choice missions** now have wrong options of the same word type as the answer that are believable but contradicted by the scene, so students cannot rule them out without understanding the word. Many are words from the same unit, so the options also revise vocabulary.
 - **No more giveaways in titles or translations:** 13 mission titles that contained the answer or its meaning (e.g. “A Proud Moment” for *proud*) were renamed in English and Chinese, and 10 Chinese questions or scenes that added the answer’s Chinese meaning were reworded.
 - New content checks: every option list is unique, the answer index points to the target word, no title reveals its answer, and Chinese text is checked against each answer’s textbook gloss (with documented exceptions).
+
+## v1.6.0 — FSRS review functionality (draft PR #23, NOT RELEASED)
+
+Student-facing review is implemented on this **feature branch only**:
+- [`review.html`](review.html) gives **Today's practice** (up to five previously completed/due missions per local day, with interrupted sessions resumable) and **Review my mistakes** (a separate, resumable list of previously missed completed missions).
+- Existing English-first multiple-choice and word-part missions appear as questions, with Chinese support, two hints and post-answer explanations. No typed answers or sentence-generation feature is added.
+- Every original first completion seeds a pinned browser-local [FSRS 5.4.2](vendor/README.md) card; original Replay remains practice-only. Each later review yields one rating: wrong/reveal → Again; hint → Hard; first-attempt correct without hints → Good.
+- The separate `wordquest_review_v1` localStorage key stores due times, sessions, Remembered (delayed independent recall and stability ≥7 days) and a one-time **+25 Review XP** earn-back for explicitly revealed 0-XP first completions. Old Unit 1–6 progress and voice keys are never modified by review.
+- A compact **Today** badge appears on homepage and all unit headers, with the due count; the results screen links to mistake review. If a mission is already rated today, mistake practice still works but does not rate the card twice.
+- The review scheduler requires no network to calculate FSRS, but **the website is not guaranteed to load offline** without a separately verified offline cache/service worker.
+- Before merging: independent Claude code review, owner approval, real-device iPhone Safari smoke test, passing GitHub `validate` + `browser` checks, and deployment verification.
+
+**Released `main` remains v1.5.4 until this PR is explicitly approved and merged.**
 
 ## Features
 - English-first game, optional Chinese translations and progressive hints.
