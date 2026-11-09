@@ -19,7 +19,7 @@ assert "Automatic</option>" not in (root/"speech.js").read_text(encoding="utf8")
 assert "background-image:linear-gradient" in (root/"speech.css").read_text(encoding="utf8")
 for page in ["index.html"]+[f"unit{i}.html" for i in range(1,7)]:
  assert 'site-version.js' in (root/page).read_text(encoding="utf8"),f"No version script on {page}"
-assert "const VERSION='1.5.4'" in (root/"site-version.js").read_text(encoding="utf8")
+assert "const VERSION='1.6.0'" in (root/"site-version.js").read_text(encoding="utf8")
 speech=(root/"speech.js").read_text(encoding="utf8")
 assert "speech-settings-trigger" in speech and "speech-settings-confirm" in speech
 assert "new MutationObserver(ensureControl)" in speech
@@ -38,4 +38,17 @@ assert 'wordquest_g7u' in (root/"quest.js").read_text(encoding="utf8")
 for name in ["playwright.config.js", "tests/browser/wordquest.spec.js", "tests/check_content.js"]:
  assert (root/name).is_file(),f"Missing regression test: {name}"
 assert "practice:true" in (root/"quest.js").read_text(encoding="utf8")
-print("Word Quest v1.5.4 static checks passed")
+print("Word Quest v1.6.0 static checks passed")
+
+for name in ["review.html","review.css","review-app.js","review-data.js","review-nav.js",
+             "review-core.js","review-scheduler.js","review-memory.js",
+             "vendor/ts-fsrs-5.4.2.umd.js","tests/browser/review.spec.js"]:
+ assert (root/name).is_file(),f"Missing review component: {name}"
+review=(root/"review.html").read_text(encoding="utf8")
+for name in ["review-app.js","review-data.js","review-nav.js","review-scheduler.js",
+             "review-memory.js","review-core.js","unit1-data.js","content.js"]:
+ assert f'src="{name}"' in review,f"Review page missing: {name}"
+for unit in range(1,7):
+ html=(root/f"unit{unit}.html").read_text(encoding="utf8")
+ assert 'review-memory.js' in html and 'review-nav.js' in html
+assert 'review-nav.js' in (root/"index.html").read_text(encoding="utf8")
