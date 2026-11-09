@@ -17,6 +17,9 @@
         '<span class="wq-brand-text">WORD QUEST</span>'+
         '<small class="wq-grade">G7A'+(unit?' · U'+esc(unit):'')+'</small>'+
       '</a>'+
+      '<a class="wq-today-link" href="review.html?mode=today&amp;auto=1" aria-label="Today’s practice">'+
+        '<span class="wq-today-long">📅 Today</span><span class="wq-today-short" aria-hidden="true">📅</span>'+
+        '<span class="wq-today-count" data-review-count>0</span></a>'+
       '<nav class="wq-nav tools topnav" aria-label="'+(home?'Resources':'Game navigation')+'">'+nav+'</nav>'+
       '</header>';
   }
