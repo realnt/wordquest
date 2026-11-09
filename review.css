@@ -1,0 +1,43 @@
+/* Review sessions: same visual language and controls as all six units. */
+.review-page{padding-bottom:16px}
+.review-banner{
+ background:linear-gradient(115deg,#163e50,#176b64);
+ color:white;border-radius:18px;padding:22px 26px;margin-bottom:18px;
+}
+.review-banner .eyebrow{color:#bdebdc;font-size:11px;letter-spacing:.08em}
+.review-banner h1{font-size:27px;color:white;margin:6px 0}
+.review-banner p{color:#e4f7ed;margin:0;font-size:14px}
+.review-page .question{margin:18px 0}
+.review-page .question .label{margin-bottom:8px}
+.review-step{display:flex;align-items:center;justify-content:space-between;gap:12px;
+ font-weight:800;color:#235a59;margin-bottom:10px;font-size:13px}
+.review-progress{height:8px;overflow:hidden;background:#d8ece8;border-radius:99px;
+ margin-bottom:20px}
+.review-progress>div{height:100%;border-radius:99px;background:#178371}
+.review-statgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;
+ margin:20px 0}
+.review-statgrid>div{display:flex;flex-direction:column;gap:4px;align-items:center;
+ text-align:center;border-radius:12px;padding:16px 8px;background:#e9f5f1}
+.review-statgrid strong{font-size:29px;color:#0e655a}
+.review-statgrid span{font-size:12px;color:#365b60}
+.review-start-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.review-start-card{border:1px solid #c9dddd;border-radius:14px;padding:17px}
+.review-start-card h3{margin:0 0 9px;font-size:17px;color:#173e4f}
+.review-start-card p{font-size:13px;line-height:1.6;color:#566e78;min-height:62px}
+.review-start-card .btn{max-width:100%;white-space:normal}
+.review-note{border-left:3px solid #0e806f;padding:11px 14px;
+ border-radius:8px;background:#e5f4ee;font-size:14px}
+.review-bonus{color:#215e4a;font-size:17px;font-weight:800}
+.review-landing h2,.review-finish h2{margin:0 0 12px}
+.review-page .storynote{margin-top:16px}
+@media(max-width:600px){
+ .review-banner{padding:16px;margin-bottom:13px}
+ .review-banner h1{font-size:22px}
+ .review-start-grid{grid-template-columns:1fr;gap:10px}
+ .review-start-card{padding:14px}
+ .review-start-card p{min-height:0}
+ .review-statgrid{gap:6px}
+ .review-statgrid>div{padding:12px 5px}
+ .review-statgrid strong{font-size:23px}
+ .review-statgrid span{font-size:11px}
+}
