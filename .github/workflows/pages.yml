@@ -24,6 +24,9 @@ jobs:
           node tests/test_review_core.js
           node --check review-scheduler.js
           node --check review-memory.js
+          node --check review-data.js
+          node --check review-nav.js
+          node --check review-app.js
           node tests/test_review_memory.js
           node tests/check_content.js
           node --check content.js
